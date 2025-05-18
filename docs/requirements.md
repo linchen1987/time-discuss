@@ -1,0 +1,163 @@
+## 1. 项目概述
+
+项目名称： 朋友之家 (或自定义)
+目标： 为一个小团体（少于10人）提供一个私密的、类似 Twitter 或微信朋友圈的在线交流平台。
+核心特点： Serverless 部署、移动端友好、PWA 支持、多种内容格式、灵活的登录方式。
+
+## 2. 目标用户
+
+发起人及其亲密朋友。
+用户总数：严格控制在 10 人以内。
+用户特征：对隐私有一定要求，希望有一个专属的小圈子交流空间，熟悉主流社交应用的操作。
+
+## 3. 功能需求 (FR)
+
+FR1: 用户认证与管理
+
+* FR1.1 用户注册：
+* FR1.1.1 初期可由管理员手动邀请或添加用户，无需开放注册。
+* FR1.1.2 如果需要，支持基于用户名和密码的注册。
+* FR1.2 用户登录：
+* FR1.2.1 必须支持： 用户名和密码登录。
+* FR1.2.2 可选配置： 支持 OAuth 2.0 协议的第三方登录，例如：
+* Google 登录
+* GitHub 登录
+* (可根据朋友群体的常用服务进行选择)
+* FR1.2.3 登录状态保持（例如通过 Token）。
+* FR1.3 用户登出：
+* FR1.3.1 用户可以主动登出，清除登录状态。
+* FR1.4 密码管理 (若支持用户名密码登录)：
+* FR1.4.1 支持安全的密码找回/重置功能 (例如通过预设邮箱)。
+* FR1.5 用户资料 (简化版)：
+* FR1.5.1 用户可设置昵称。
+* FR1.5.2 用户可设置/上传头像。
+
+FR2: 内容发布 (Post)
+
+* FR2.1 发布界面：
+* FR2.1.1 提供简洁直观的输入框，类似 Twitter/微博的发布框。
+* FR2.1.2 支持实时字数统计/限制 (可选)。
+* FR2.2 内容格式支持：
+* FR2.2.1 纯文字： 支持多行文本输入。
+* FR2.2.2 文字 + 图片：
+* 支持上传单张或多张图片 (例如最多 4 或 9 张，类似朋友圈/Twitter)。
+* 图片上传后应有预览。
+* 图片应能被压缩以优化加载速度和存储。
+* FR2.2.3 表情符号 (Emoji)：
+* 支持系统原生 Emoji 输入。
+* 可选：提供内置的 Emoji 选择器。
+* FR2.2.4 链接：
+* 自动识别文本中的 URL 并将其转换为可点击链接。
+* 可选高级功能：对特定链接（如 YouTube、B站视频，文章链接）生成预览卡片 (Link Preview)。
+* FR2.2.5 Markdown 支持 (可选，但推荐以简化高级格式)：
+* 允许用户使用简单的 Markdown 语法进行文本格式化 (如加粗、斜体、列表、引用、代码块等)。发布时解析 Markdown 为 HTML。
+* FR2.3 发布操作：
+* FR2.3.1 “发布”按钮提交内容。
+* FR2.3.2 发布后，新内容应出现在信息流顶部。
+
+FR3: 信息流 (Feed/Timeline)
+
+* FR3.1 展示方式：
+* FR3.1.1 采用单列信息流，按时间倒序排列所有用户的 Post。
+* FR3.1.2 每个 Post清晰展示发布者昵称、头像、发布时间、内容。
+* FR3.2 图片展示：
+* FR3.2.1 Post 中的图片以缩略图形式展示在信息流中。
+* FR3.2.2 点击缩略图可查看大图，支持左右滑动浏览多张图片。
+* FR3.3 动态加载：
+* FR3.3.1 页面滚动到底部时，自动加载更早的 Post (Infinite Scrolling)。
+
+FR4: 互动功能
+
+* FR4.1 点赞 (Like)：
+* FR4.1.1 用户可以对 Post 进行点赞/取消点赞。
+* FR4.1.2 显示 Post 的点赞总数。
+* FR4.1.3 可选：显示点赞用户列表。
+* FR4.2 评论 (Comment)：
+* FR4.2.1 用户可以对 Post 发表评论。
+* FR4.2.2 评论按时间顺序展示在对应 Post下方。
+* FR4.2.3 显示评论总数。
+* FR4.2.4 可选：支持对评论进行回复 (形成简单层级，但不宜过深)。
+* FR4.3 @提及 (Mention) (可选)：
+* FR4.3.1 在发布或评论时，输入 "@" 后可以提示并选择其他用户。
+* FR4.3.2 被提及的用户能收到通知 (见 FR5)。
+
+FR5: 通知 (Notification) (简化版)
+
+* FR5.1 通知类型：
+* FR5.1.1 当自己的 Post 被点赞时。
+* FR5.1.2 当自己的 Post 被评论时。
+* FR5.1.3 当自己被 @ 提及到时 (若支持 FR4.3)。
+* FR5.2 通知展示：
+* FR5.2.1 在界面上提供一个通知图标或入口，显示未读通知数量。
+* FR5.2.2 点击可查看通知列表，链接到对应的 Post。
+
+FR6: 内容管理
+
+* FR6.1 删除自己的 Post： 用户可以删除自己发布的 Post。
+* FR6.2 删除自己的评论： 用户可以删除自己发表的评论。
+* FR6.3 管理员权限 (由发起人担任)：
+* FR6.3.1 管理员可以删除任意用户的任意 Post 或评论 (用于内容管理)。
+* FR6.3.2 管理员可以管理用户列表 (例如移除用户)。
+
+## 4. 非功能需求 (NFR)
+
+NFR1: 部署 (Serverless)
+NFR1.1 所有后端服务必须能以 Serverless Functions (如 Vercel Functions, Cloudflare Workers) 的形式部署。
+NFR1.2 前端静态资源托管在 Vercel 或 Cloudflare Pages 等平台上。
+NFR1.3 数据库选择：需要与 Serverless 架构兼容且有免费或低成本方案 (例如 Vercel KV/Postgres, Cloudflare D1/KV, FaunaDB, PlanetScale, Supabase)。
+NFR1.4 对象存储 (图片等)：选择与 Serverless 架构兼容且低成本方案 (例如 Cloudflare R2, Vercel Blob)。
+NFR2: 用户体验 (UX)
+NFR2.1 移动端友好 (Mobile-First)： 界面必须在主流移动设备浏览器上良好显示和操作，采用响应式设计。
+NFR2.2 PWA (Progressive Web App) 支持：
+NFR2.2.1 提供 manifest.json 文件，允许用户将应用“添加到主屏幕”。
+NFR2.2.2 实现 Service Worker 以支持基本的离线缓存 (如应用外壳、已加载内容) 和提升加载性能。
+NFR2.3 交互简洁： UI 设计和交互流程应类似 Twitter 或微信朋友圈，确保用户易于上手。
+NFR2.4 性能：
+首次加载时间应尽可能短。
+页面切换、内容加载流畅。
+NFR3: 安全性
+NFR3.1 认证安全： 密码存储必须加盐哈希；OAuth 流程遵循最佳实践。
+NFR3.2 数据传输安全： 全站强制 HTTPS。
+NFR3.3 访问控制： 严格区分用户权限，非认证用户无法访问内容，用户只能操作自己的内容 (管理员除外)。
+NFR3.4 防范常见 Web 攻击： 如 XSS (对用户输入进行清理)、CSRF (如适用)。
+NFR4: 可维护性与扩展性
+NFR4.1 代码结构清晰，有必要的注释。
+NFR4.2 考虑到未来可能的小幅功能迭代。
+NFR5: 成本控制
+NFR5.1 优先选择在免费额度内能满足需求的 Serverless 服务。
+NFR5.2 监控资源使用，避免不必要的开销。
+
+## 5. 技术栈与部署环境 (建议)
+
+部署平台： Vercel 或 Cloudflare (Pages + Workers/Functions)。
+前端：
+框架：React (Next.js), Vue (Nuxt.js), Svelte (SvelteKit) - 这些框架对 PWA 和 Serverless 部署有良好支持。
+UI 库：Tailwind CSS (实用优先) 或组件库 (如 Material UI, Chakra UI 等，视乎开发效率和定制需求)。
+后端 (Serverless Functions)：
+语言：Node.js (TypeScript/JavaScript), Python, Go (根据开发团队熟悉程度和平台支持选择)。
+数据库：
+Vercel: Vercel KV, Vercel Postgres
+Cloudflare: Cloudflare D1 (SQL), Cloudflare KV (Key-Value), Cloudflare Durable Objects
+第三方: FaunaDB, Supabase (PostgreSQL based), PlanetScale (MySQL compatible)
+对象存储 (图片等)：
+Vercel: Vercel Blob
+Cloudflare: Cloudflare R2
+版本控制： Git (例如托管在 GitHub, GitLab)。
+CI/CD： 利用 Vercel 或 Cloudflare 平台与 Git 仓库的集成，实现自动化构建和部署。
+
+## 6. 验收标准
+
+所有在“功能需求”中标记为“必须支持”的功能均已实现并通过测试。
+应用在主流移动端浏览器 (Chrome, Safari) 和桌面浏览器 (Chrome, Firefox, Safari, Edge) 上表现良好。
+PWA 功能（添加到主屏幕、基本离线访问）可用。
+在模拟的 <10 用户正常使用情况下，应用响应迅速，无明显卡顿。
+Serverless 部署配置完成，应用可通过指定域名访问。
+基本安全措施到位。
+
+## 7. 未来展望 (可选，超出本次范围)
+
+私信功能。
+更丰富的通知推送 (Web Push)。
+内容搜索。
+话题标签 (#tag)。
+这份需求文档应该能为您启动项目提供一个清晰的框架。在开发过程中，可以根据实际情况进行微调。
