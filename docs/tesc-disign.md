@@ -1,17 +1,20 @@
-1. 引言
+本文档旨在为“朋友之家”（或自定义名称）小型私密社交论坛项目提供具体的技术实现方案。
 
-本文档旨在为“朋友之家”（或自定义名称）小型私密社交论坛项目提供具体的技术实现方案。该方案基于先前确定的需求文档，并采用 Next.js 作为核心开发框架，LexicalJS 作为富文本编辑器，Tailwind CSS 进行样式构建，同时实现 PWA 功能及浏览器原生通知。部署平台首选 Vercel。
+# 技术栈和技术架构概述
+- Next.js
+- tailwindcss
+- Shadcn UI: 前端组件库
+- LexicalJS: 富文本编辑器
+- 支持 PWA
+- 支持 Serverless Functions
+- 应用运行服务: vercel 或 cloudflare
+- 数据库: postgres
+- 数据库服务: 与 Serverless 兼容的数据库服务 (例如 Vercel Postgres, Supabase, PlanetScale, 或 Cloudflare D1)
+  - 本地开发数据库服务: docker
+- 数据库 DB ORM: prisma
+- 对象存储： 图片等静态资源将存储在 Vercel Blob 或 Cloudflare R2 等服务。
+- 支持浏览器通知和原生通知
 
-2. 架构概述
-
-项目将采用基于 Next.js (App Router) 的全栈架构。
-
-前端： Next.js 将负责页面渲染（SSR/SSG/CSR 混合）、组件管理和用户交互。
-后端： Next.js API Routes (或 Server Actions) 将处理业务逻辑、数据库交互和认证，以 Serverless Functions 的形式运行在 Vercel 平台上。
-数据库： 采用与 Serverless 兼容的数据库服务 (例如 Vercel Postgres, Supabase, PlanetScale, 或 Cloudflare D1)，通过 Prisma ORM 进行交互。
-对象存储： 图片等静态资源将存储在 Vercel Blob 或 Cloudflare R2 等服务。
-部署： 整体应用将部署在 Vercel 平台，利用其 CI/CD、Serverless Functions 和全球 CDN 能力。
-(这是一个概念图，实际部署时组件交互会更细致)
 
 3. 前端设计
 
@@ -144,141 +147,6 @@ Prisma Client: lib/prisma.ts 初始化并导出 Prisma Client 实例。
 Schema: prisma/schema.prisma 定义数据模型 (见下一节)。
 Migrations: 使用 prisma migrate dev 管理数据库结构变更。
 Queries: 在 Server Actions 和 API Routes 中使用 Prisma Client 进行 CRUD 操作。
-
-5. 数据库 Schema (Prisma)
-
-代码段
-
-// prisma/schema.prisma
-datasource db {
-  provider = "postgresql" // Or "mysql", "sqlite" depending on Vercel/Cloudflare choice
-  url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-model User {
-  id            String    @id @default(cuid())
-  username      String?   @unique // For username/password login
-  email         String?   @unique // For OAuth and password recovery
-  hashedPassword String?  // For username/password login
-  name          String?
-  avatarUrl     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[]
-  notifications Notification[] @relation("UserNotification")
-  pushSubscriptions PushSubscription[]
-
-  // NextAuth.js specific
-  accounts      Account[]
-  sessions      Session[]
-}
-
-// NextAuth.js Account model
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-// NextAuth.js Session model
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Post {
-  id          String    @id @default(cuid())
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  // For Lexical editor state
-  lexicalState Json     // Stores the JSON output from editor.getEditorState().toJSON()
-  // Fallback or simplified HTML version for display if needed, generated from lexicalState
-  // contentHtml String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  images      PostImage[]
-  comments    Comment[]
-  likes       Like[]
-  notifications Notification[] @relation("PostNotification")
-}
-
-model PostImage {
-  id        String   @id @default(cuid())
-  url       String   // URL from Vercel Blob or Cloudflare R2
-  altText   String?
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  uploadedAt DateTime @default(now())
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String   // For simplicity, comments are plain text initially
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Like {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, postId]) // User can only like a post once
-}
-
-model Notification {
-  id            String    @id @default(cuid())
-  recipientId   String    // The user who receives the notification
-  recipient     User      @relation("UserNotification", fields: [recipientId], references: [id], onDelete: Cascade)
-  actorId       String?   // The user who performed the action (optional)
-  // actor      User?     @relation("NotificationActor", fields: [actorId], references: [id], onDelete:SetNull)
-  type          String    // e.g., "NEW_COMMENT", "NEW_LIKE", "MENTION"
-  postId        String?   // Link to the relevant post
-  post          Post?      @relation("PostNotification", fields: [postId], references: [id], onDelete:Cascade)
-  read          Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  endpoint  String   @unique // Subscription endpoint URL
-  p256dh    String   // Public key for VAPID
-  auth      String   // Auth secret for VAPID
-  createdAt DateTime @default(now())
-}
 
 6. 图片处理
 
@@ -425,36 +293,9 @@ return clients.openWindow(urlToOpen);
 });
 ```
 
-8. 部署 (Vercel)
 
-Repository: Host code on GitHub/GitLab.
-Vercel Project: Connect the repository to a new Vercel project. Vercel auto-detects Next.js.
-Build Settings: Default Next.js settings usually suffice.
-Environment Variables: Configure in Vercel project settings:
-DATABASE_URL
-NEXTAUTH_SECRET
-NEXTAUTH_URL
-OAuth Provider Client IDs and Secrets (e.g., GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
-VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY
-Object storage credentials (if not using Vercel Blob integrated solution).
-Database & Storage: Provision Vercel Postgres/KV and Vercel Blob, or configure connections to external services like Supabase/PlanetScale/Cloudflare D1/R2.
-Domains: Assign custom domain(s).
-CI/CD: Vercel automatically builds and deploys on pushes to the main branch (and creates preview deployments for other branches).
 
-9. 安全性考虑
-
-Authentication: NextAuth.js handles CSRF protection and secure session management. Strong password hashing (bcrypt/argon2) for credentials.
-Authorization: Rigorous checks on API routes and Server Actions to ensure users can only access/modify their own data (or data they have permission for).
-Input Sanitization/Validation:
-Use Zod for validating all API inputs and Server Action arguments.
-Lexical's JSON state is inherently structured. If converting to HTML for display, ensure the conversion process is secure (e.g., $generateHtmlFromNodes is generally safe). Avoid rendering user-provided raw HTML.
-HTTPS: Enforced by Vercel.
-Environment Variables: Store all secrets and sensitive configurations as environment variables.
-Rate Limiting: For public-facing APIs or auth endpoints, consider rate limiting (Vercel offers some protection, or implement custom logic).
-Content Security Policy (CSP): Implement a CSP header via next.config.mjs to mitigate XSS risks.
-Dependencies: Regularly update dependencies to patch security vulnerabilities.
-
-10. 未来考虑 (可选)
+## 未来考虑 (可选)
 
 Advanced Search: Implement search functionality for posts.
 User Mentions (@): Integrate mentions within Lexical and backend notification system.

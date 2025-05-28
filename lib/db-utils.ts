@@ -106,7 +106,7 @@ export const postOperations = {
   },
 
   // 创建新帖子
-  async create(data: { authorId: string; lexicalState: Record<string, unknown>; contentHtml?: string; images?: { url: string; altText?: string }[] }) {
+  async create(data: { authorId: string; lexicalState: any; contentHtml?: string; images?: { url: string; altText?: string }[] }) {
     return await prisma.post.create({
       data: {
         authorId: data.authorId,
@@ -364,3 +364,8 @@ export const pushSubscriptionOperations = {
     });
   },
 };
+
+// 简化的获取帖子函数，用于首页
+export async function getPosts() {
+  return await postOperations.getPostsWithDetails({ limit: 20 });
+}
