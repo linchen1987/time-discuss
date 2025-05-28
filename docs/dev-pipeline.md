@@ -26,7 +26,7 @@
 3. **本地数据库设置**
    - 开发阶段可使用 Docker 容器运行 PostgreSQL
    ```bash
-   docker run --name time-discuss-db -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=myuser -e POSTGRES_DB=timediscuss -p 5432:5432 -d postgres:14
+   docker run --name time-discuss-db -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=myuser -e POSTGRES_DB=timediscuss -p 5432:5432 -d postgres:16
    ```
    - 更新 .env.local 中的 DATABASE_URL
    - 运行数据库迁移
@@ -39,66 +39,9 @@
    npm run dev
    ```
 
-### 2. 分支管理策略
-
-1. **分支命名规范**
-   - `main` - 主分支，包含生产就绪代码
-   - `develop` - 开发分支，所有功能分支合并到此
-   - `feature/[feature-name]` - 功能分支
-   - `fix/[bug-name]` - 修复分支
-   - `release/v[version]` - 发布分支
-
-2. **开发流程**
-   - 从 `develop` 创建新功能分支
-   - 完成开发后，创建 Pull Request 合并回 `develop`
-   - 定期从 `develop` 创建 `release` 分支
-   - 测试通过后，将 `release` 分支合并到 `main`
-
-3. **提交规范**
-   - 使用 Conventional Commits 格式
-   - 格式: `<type>(<scope>): <description>`
-   - 类型:
-     - `feat`: 新功能
-     - `fix`: Bug 修复
-     - `docs`: 文档更新
-     - `style`: 代码格式 (不影响代码运行)
-     - `refactor`: 重构代码
-     - `test`: 测试相关
-     - `chore`: 工具链或配置更改
-
-### 3. 代码审查
-
-1. **审查标准**
-   - 代码是否符合项目编码规范
-   - 功能是否完整实现需求
-   - 是否有适当的错误处理
-   - 是否考虑了边缘情况
-   - UI 是否符合设计意图
-   - 是否有必要的测试覆盖
-
-2. **审查流程**
-   - 创建 Pull Request 时填写详细描述
-   - 至少一名团队成员审查
-   - 解决所有评论后方可合并
-   - 确保所有 CI 检查通过
-
 ## 部署流程
 
-### 1. 部署环境
-
-1. **开发环境**
-   - 自动部署 `develop` 分支
-   - 用于团队内部测试
-
-2. **预发布环境**
-   - 自动部署 `release/*` 分支
-   - 用于最终验收测试
-
-3. **生产环境**
-   - 手动触发从 `main` 分支部署
-   - 严格控制部署时间和流程
-
-### 2. Vercel 部署配置
+### 1. Vercel 部署配置
 
 1. **项目配置**
    - 连接 GitHub 仓库
@@ -124,7 +67,7 @@
      - 预发布环境: `staging.yourapp.com`
      - 生产环境: `yourapp.com`
 
-### 3. 数据库迁移流程
+### 2. 数据库迁移流程
 
 1. **开发环境迁移**
    - 本地生成迁移文件
@@ -182,49 +125,3 @@
    - 清理未使用的 Blob 存储对象
    - 优化数据库查询
    - 检查 API 使用配额
-
-## 紧急情况处理
-
-### 1. 回滚流程
-
-1. **代码回滚**
-   - 在 Vercel 控制台回滚到上一个稳定部署
-   - 或推送回滚提交到 `main` 分支
-
-2. **数据库回滚**
-   - 从最近的备份恢复数据库
-   - 运行特定的回滚迁移
-
-### 2. 应急联系方式
-
-创建应急联系列表，包含:
-- 项目负责人
-- 后端开发负责人
-- 前端开发负责人
-- 运维负责人
-- 关键外部服务商的支持联系方式
-
-## 持续集成
-
-### 1. 自动化测试
-
-1. **测试策略**
-   - 单元测试: 使用 Jest 测试独立组件和函数
-   - 集成测试: 测试组件间交互
-   - E2E 测试: 使用 Playwright/Cypress 测试主要用户流程
-
-2. **CI 配置**
-   - 设置 GitHub Actions 运行测试
-   - 每次 PR 和推送到主要分支时运行测试
-   - 生成测试覆盖报告
-
-### 2. 代码质量检查
-
-1. **自动化检查**
-   - ESLint: 代码风格和潜在问题
-   - TypeScript 类型检查
-   - 测试覆盖率阈值
-
-2. **预发布验证**
-   - 创建预发布检查清单
-   - 在生产部署前运行完整检查 
