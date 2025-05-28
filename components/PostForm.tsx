@@ -11,6 +11,8 @@ import { toast } from "sonner"
 
 export function PostForm() {
     const { data: session } = useSession()
+    type UserWithAvatar = { avatarUrl?: string | null; name?: string | null };
+    const user = session?.user as UserWithAvatar | undefined
     const [content, setContent] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -39,9 +41,9 @@ export function PostForm() {
             <div className="p-4">
                 <div className="flex space-x-3">
                     <Avatar>
-                        <AvatarImage src={session.user?.image || ""} />
+                        <AvatarImage src={user?.avatarUrl || ""} />
                         <AvatarFallback>
-                            {session.user?.name?.charAt(0) || "U"}
+                            {user?.name?.charAt(0) || "U"}
                         </AvatarFallback>
                     </Avatar>
 

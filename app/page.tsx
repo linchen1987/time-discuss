@@ -1,9 +1,14 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { Sidebar } from "@/components/Sidebar"
 import { PostForm } from "@/components/PostForm"
 import { PostList } from "@/components/PostList"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { User } from "lucide-react"
+import { prisma } from "@/lib/prisma"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
@@ -11,6 +16,24 @@ export default async function Home() {
   if (!session) {
     redirect("/auth/login")
   }
+
+  // 获取用户详细信息
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      avatarUrl: true,
+      _count: {
+        select: {
+          posts: true,
+          comments: true,
+          likes: true,
+        },
+      },
+    },
+  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,8 +54,53 @@ export default async function Home() {
           <PostList />
         </main>
 
-        {/* 右侧边栏（暂时留空） */}
-        <div className="w-80 p-4 hidden lg:block">
+        {/* 右侧边栏 */}
+        <div className="w-80 p-4 hidden lg:block space-y-4">
+          {/* 用户信息卡片 */}
+          <div className="bg-muted rounded-xl p-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <Avatar className="w-12 h-12">
+                <AvatarImage src={user?.avatarUrl || ""} alt={user?.name || "用户头像"} />
+                <AvatarFallback>
+                  {user?.name?.charAt(0) || user?.username?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm">
+                  {user?.name || user?.username || "用户"}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  @{user?.username || "user"}
+                </p>
+              </div>
+            </div>
+
+            {/* 统计信息 */}
+            <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+              <div>
+                <div className="text-lg font-bold">{user?._count.posts || 0}</div>
+                <div className="text-xs text-muted-foreground">帖子</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold">{user?._count.comments || 0}</div>
+                <div className="text-xs text-muted-foreground">评论</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold">{user?._count.likes || 0}</div>
+                <div className="text-xs text-muted-foreground">点赞</div>
+              </div>
+            </div>
+
+            {/* 个人资料按钮 */}
+            <Link href="/profile">
+              <Button variant="outline" className="w-full" size="sm">
+                <User className="w-4 h-4 mr-2" />
+                查看个人资料
+              </Button>
+            </Link>
+          </div>
+
+          {/* 朋友之家介绍 */}
           <div className="bg-muted rounded-xl p-4">
             <h2 className="font-bold text-lg mb-2">朋友之家</h2>
             <p className="text-muted-foreground text-sm">

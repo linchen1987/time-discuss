@@ -2,6 +2,12 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import { User } from 'lucide-react'
+
+interface ExtendedUser {
+    name?: string | null;
+    username?: string | null;
+}
 
 export default function Navigation() {
     const { data: session, status } = useSession()
@@ -25,6 +31,8 @@ export default function Navigation() {
         )
     }
 
+    const user = session?.user as ExtendedUser | undefined;
+
     return (
         <nav className="bg-white shadow-sm border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,8 +47,15 @@ export default function Navigation() {
                         {session ? (
                             <>
                                 <span className="text-gray-700">
-                                    欢迎，{session.user?.name || (session.user as any)?.username || '用户'}
+                                    欢迎，{user?.name || user?.username || '用户'}
                                 </span>
+                                <Link
+                                    href="/profile"
+                                    className="flex items-center text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                                >
+                                    <User className="w-4 h-4 mr-1" />
+                                    个人资料
+                                </Link>
                                 <button
                                     onClick={() => signOut({ callbackUrl: '/' })}
                                     className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"

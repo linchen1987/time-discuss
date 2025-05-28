@@ -23,7 +23,14 @@ export const userValidation = {
   // 更新资料验证
   updateProfile: z.object({
     name: z.string().min(1, '姓名不能为空').max(50, '姓名最多50个字符').optional(),
-    avatarUrl: z.string().url('请输入有效的头像URL').optional(),
+    avatarUrl: z
+      .string()
+      .refine((url) => {
+        if (!url) return true; // 允许空值
+        // 允许相对路径（以/开头）或完整URL
+        return url.startsWith('/') || z.string().url().safeParse(url).success;
+      }, '请输入有效的头像URL或路径')
+      .optional(),
   }),
 };
 

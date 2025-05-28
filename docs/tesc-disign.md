@@ -1,64 +1,23 @@
 本文档旨在为“朋友之家”（或自定义名称）小型私密社交论坛项目提供具体的技术实现方案。
 
 # 技术栈和技术架构概述
-- Next.js
-- tailwindcss
-- Shadcn UI: 前端组件库
-- LexicalJS: 富文本编辑器
-- 支持 PWA
+- 应用程序框架: Next.js
+- 前端样式: tailwindcss
+- 前端组件库: Shadcn UI
+- 前端-富文本编辑器: LexicalJS
+- 数据库: postgres
+- 数据库 DB ORM: prisma
+- 登录认证与授权: NextAuth
 - 支持 Serverless Functions
 - 应用运行服务: vercel 或 cloudflare
-- 数据库: postgres
-- 数据库服务: 与 Serverless 兼容的数据库服务 (例如 Vercel Postgres, Supabase, PlanetScale, 或 Cloudflare D1)
+- 数据库运行服务: 与 Serverless 兼容的数据库服务 (例如 Vercel Postgres, Supabase, PlanetScale, 或 Cloudflare D1)
   - 本地开发数据库服务: docker
-- 数据库 DB ORM: prisma
-- 对象存储： 图片等静态资源将存储在 Vercel Blob 或 Cloudflare R2 等服务。
+- 对象存储服务： 图片等静态资源将存储在 Vercel Blob 或 Cloudflare R2 等服务。
+- 支持 PWA
 - 支持浏览器通知和原生通知
 
 
 3. 前端设计
-
-3.1. 框架与结构 (Next.js App Router)
-
-Next.js App Router: 利用其最新的特性，如 Layouts, Server Components, Client Components, Route Handlers (用于 API) 和 Server Actions (用于数据变更)。
-项目结构 (示例):
-/app
-    /(app)/           # Authenticated routes
-        layout.tsx
-        page.tsx      # Main feed
-        /post
-            /[id]/page.tsx
-        /profile/page.tsx
-        /notifications/page.tsx
-    /(auth)/          # Authentication routes
-        layout.tsx
-        /login/page.tsx
-    api/              # API Routes (Route Handlers)
-        auth/[...nextauth]/route.ts
-        posts/route.ts
-        uploads/route.ts # For image uploads
-    layout.tsx        # Root layout
-    globals.css
-/components
-    /ui               # Generic UI elements (Button, Input, Card)
-    /auth             # Authentication components (LoginForm)
-    /editor           # Lexical editor component
-    /posts            # PostCard, PostForm, CommentList
-    /shell            # Navbar, Sidebar
-/lib                  # Helper functions, Prisma client, NextAuth config
-/public               # Static assets (manifest.json, sw.js, icons)
-/prisma
-    schema.prisma
-tailwind.config.js
-next.config.mjs
-路由： 利用 App Router 的文件系统路由。
-
-3.2. 样式 (Tailwind CSS)
-
-配置： tailwind.config.js 中定义主题 (颜色、字体、间距) 和插件。
-使用： 采用 Utility-First 的方法，直接在 JSX/TSX 中编写原子类。
-全局样式： app/globals.css 用于基础样式、Tailwind 指令和自定义全局类。
-组件封装： 对常用的 Tailwind 组合进行组件化，以提高可维护性。
 
 3.3. 状态管理
 
@@ -67,16 +26,6 @@ React Context API: 用于简单的全局状态，如用户会话、主题。
 Client Components ('use client'): 用于需要交互和客户端状态的组件。
 Zustand / Valtio (可选): 如果客户端状态变得复杂，可引入轻量级状态管理库。对于小规模应用，优先使用 React 内建机制。
 SWR / React Query (TanStack Query): 用于客户端数据获取、缓存和同步，与 Server Actions 或 API Routes 配合。
-
-3.4. 核心 UI 组件 (示例)
-
-Button, Input, Modal, Avatar, Card (通用UI)
-Navbar: 应用导航栏，包含Logo、导航链接、用户头像/登录按钮、通知入口。
-PostForm: 包含 LexicalJS 编辑器、图片上传入口、发布按钮。
-PostCard: 展示单条 Post 内容 (作者、时间、文本、图片、互动按钮)。
-CommentItem, CommentForm: 展示和提交评论。
-NotificationItem: 展示单条通知。
-LoginForm: 用户名密码及 OAuth 登录表单。
 
 3.5. 富文本编辑器 (LexicalJS)
 
@@ -128,25 +77,6 @@ savePushSubscription(subscription): 保存 PWA 推送订阅对象。
 triggerPushNotification(userId, payload): (内部调用) 发送推送。
 请求校验： 使用 Zod 或类似的库对 API 输入进行校验。
 
-4.2. 认证与授权 (NextAuth.js)
-
-配置： app/api/auth/[...nextauth]/route.ts (或 lib/authOptions.ts)。
-Providers:
-Credentials Provider: 用于用户名/密码登录。需要自定义 authorize 函数，进行密码校验 (使用 bcrypt 或 argon2).
-OAuth Providers: Google, GitHub (或其他)。
-Adapter: 使用 @next-auth/prisma-adapter 将 NextAuth.js 与 Prisma 和数据库集成。
-Session Management: NextAuth.js 自动处理会话 Token (JWT 或数据库会话)。
-访问控制：
-在 Server Components/Pages 中使用 getServerSession()。
-在 Client Components 中使用 useSession() Hook。
-在 API Routes/Server Actions 中获取会话信息，进行权限校验。
-
-4.3. 数据库交互 (Prisma)
-
-Prisma Client: lib/prisma.ts 初始化并导出 Prisma Client 实例。
-Schema: prisma/schema.prisma 定义数据模型 (见下一节)。
-Migrations: 使用 prisma migrate dev 管理数据库结构变更。
-Queries: 在 Server Actions 和 API Routes 中使用 Prisma Client 进行 CRUD 操作。
 
 6. 图片处理
 
@@ -166,16 +96,6 @@ Queries: 在 Server Actions 和 API Routes 中使用 Prisma Client 进行 CRUD �
 返回图片 URL (或一组 URL) 给前端。
 前端：
 接收到图片 URL 后，可以在 Lexical 编辑器中插入 ImageNode 并显示图片，或将 URL 暂存，随 Post 数据一同提交。
-
-6.2. 存储
-
-服务： Vercel Blob 或 Cloudflare R2。
-数据库： PostImage 表存储图片 URL 及关联的 PostID。
-
-6.3. 优化与展示
-
-Next.js <Image> Component: 用于在前端展示图片，自动进行优化 (按需加载、响应式尺寸、格式转换如 WebP)。
-CDN: Vercel 和 Cloudflare 自动通过 CDN 分发图片。
 
 7. PWA 和通知
 
