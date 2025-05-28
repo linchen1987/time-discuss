@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { createPost } from "@/app/actions/posts"
+import { toast } from "sonner"
 
 export function PostForm() {
     const { data: session } = useSession()
@@ -21,8 +22,11 @@ export function PostForm() {
         try {
             await createPost(content.trim())
             setContent("")
-        } catch (error) {
-            console.error("Failed to create post:", error)
+            toast.success("发布成功！")
+        } catch (err) {
+            console.error("Failed to create post:", err)
+            const errorMessage = err instanceof Error ? err.message : "发布失败，请稍后重试"
+            toast.error(errorMessage)
         } finally {
             setIsSubmitting(false)
         }
