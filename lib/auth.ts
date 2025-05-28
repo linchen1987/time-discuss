@@ -4,6 +4,8 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { userValidation } from './validations';
+import type { JWT } from 'next-auth/jwt';
+import type { Session, User } from 'next-auth';
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
@@ -61,19 +63,43 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, trigger }: { token: JWT; user?: User; trigger?: string }) {
       if (user) {
         token.username = user.username;
         token.email = user.email;
+        token.name = user.name;
         token.avatarUrl = user.avatarUrl;
       }
+
+      // 当触发更新时，从数据库重新获取最新用户信息
+      if (trigger === 'update' && token.sub) {
+        const updatedUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            name: true,
+            avatarUrl: true,
+          },
+        });
+
+        if (updatedUser) {
+          token.username = updatedUser.username;
+          token.email = updatedUser.email;
+          token.name = updatedUser.name;
+          token.avatarUrl = updatedUser.avatarUrl;
+        }
+      }
+
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (token && session.user) {
         session.user.id = token.sub!;
         session.user.username = token.username;
         session.user.email = token.email;
+        session.user.name = token.name;
         session.user.avatarUrl = token.avatarUrl;
       }
       return session;

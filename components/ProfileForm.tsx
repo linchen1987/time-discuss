@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -30,6 +31,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
+    const { update } = useSession();
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
@@ -89,6 +91,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
 
             if (result.success) {
                 toast.success('个人资料更新成功');
+                await update();
                 router.refresh();
             } else {
                 toast.error(result.error || '更新失败，请重试');
