@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getAvatarUrl } from '@/lib/storage/avatarProvider';
 
 export async function GET(request: NextRequest, { params }: { params: { filename: string } }) {
   try {
@@ -11,6 +12,13 @@ export async function GET(request: NextRequest, { params }: { params: { filename
       return NextResponse.json({ error: '无效的文件名' }, { status: 400 });
     }
 
+    const provider = process.env.AVATAR_PROVIDER || 'local';
+    if (provider === 'vercel') {
+      const url = await getAvatarUrl(filename);
+      return NextResponse.redirect(url, 302);
+    }
+
+    // 本地读取逻辑
     const filePath = path.join(process.cwd(), 'uploads', 'avatars', filename);
 
     // 检查文件是否存在
