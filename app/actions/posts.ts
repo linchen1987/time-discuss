@@ -8,13 +8,13 @@ import { revalidatePath } from 'next/cache';
 export async function createPost(content: string) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     throw new Error('未登录');
   }
 
   // 查找用户
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.user.id },
   });
 
   if (!user) {
@@ -64,13 +64,13 @@ export async function createPost(content: string) {
 export async function deletePost(postId: string) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     throw new Error('未登录');
   }
 
   // 查找用户
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.user.id },
   });
 
   if (!user) {
