@@ -46,6 +46,32 @@ export function PostForm() {
         }
     }
 
+    const handlePaste = async (e: React.ClipboardEvent) => {
+        const items = e.clipboardData?.items
+        if (!items) return
+
+        const imageFiles: File[] = []
+
+        // 检查剪贴板中的所有项目
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i]
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile()
+                if (file) {
+                    imageFiles.push(file)
+                }
+            }
+        }
+
+        // 如果找到图片文件，阻止默认粘贴行为并上传图片
+        if (imageFiles.length > 0) {
+            e.preventDefault()
+            const fileList = new DataTransfer()
+            imageFiles.forEach(file => fileList.items.add(file))
+            await handleImageUpload(fileList.files)
+        }
+    }
+
     const handleImageUpload = async (files: FileList) => {
         if (files.length === 0) return
 
@@ -116,6 +142,7 @@ export function PostForm() {
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 onKeyDown={handleKeyDown}
+                                onPaste={handlePaste}
                                 className="min-h-[120px] resize-none border-none px-4 py-3 text-xl placeholder:text-muted-foreground focus-visible:ring-0"
                                 maxLength={280}
                             />
