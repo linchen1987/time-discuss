@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Heart, MessageCircle, MoreHorizontal } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import Image from "next/image"
+import { toast } from "sonner"
 
 interface PostCardProps {
     post: {
@@ -28,22 +29,66 @@ interface PostCardProps {
             likes: number
             comments: number
         }
-        likes: Array<{ userId: string }>
+        likes: Array<{
+            id: string
+            userId: string
+            user: {
+                id: string
+                name: string | null
+                username: string | null
+            }
+        }>
     }
 }
 
 export function PostCard({ post }: PostCardProps) {
     const { data: session } = useSession()
     const userId = session?.user ? (session.user as { id: string }).id : undefined
-    const [isLiked, setIsLiked] = useState(
-        post.likes.some(like => like.userId === userId)
-    )
+
+    const [isLiked, setIsLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(post._count.likes)
+    const [isLiking, setIsLiking] = useState(false)
+
+    // 当 userId 可用时，重新计算点赞状态
+    useEffect(() => {
+        if (userId) {
+            const userHasLiked = post.likes.some(like => like.userId === userId)
+            setIsLiked(userHasLiked)
+            console.log('重新计算点赞状态:', {
+                postId: post.id,
+                userId: userId,
+                userHasLiked: userHasLiked,
+                likesArray: post.likes
+            })
+        }
+    }, [userId, post.likes, post.id])
 
     const handleLike = async () => {
-        // TODO: 实现点赞功能
-        setIsLiked(!isLiked)
-        setLikeCount(prev => isLiked ? prev - 1 : prev + 1)
+        if (!session || isLiking) return
+
+        setIsLiking(true)
+        try {
+            const response = await fetch(`/api/posts/${post.id}/like`, {
+                method: 'POST',
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || '操作失败')
+            }
+
+            const result = await response.json()
+
+            // 更新UI状态
+            setIsLiked(result.liked)
+            setLikeCount(prev => result.liked ? prev + 1 : prev - 1)
+
+        } catch (error) {
+            console.error('Like error:', error)
+            toast.error(error instanceof Error ? error.message : '点赞失败，请重试')
+        } finally {
+            setIsLiking(false)
+        }
     }
 
     // 根据图片数量决定布局
@@ -147,6 +192,7 @@ export function PostCard({ post }: PostCardProps) {
                                 className={`text-muted-foreground hover:text-red-600 ${isLiked ? "text-red-600" : ""
                                     }`}
                                 onClick={handleLike}
+                                disabled={isLiking || !session}
                             >
                                 <Heart className={`h-4 w-4 mr-1 ${isLiked ? "fill-current" : ""}`} />
                                 {likeCount}
