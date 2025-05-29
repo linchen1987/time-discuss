@@ -34,6 +34,12 @@ export function PostForm() {
         }
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            handleSubmit(e as unknown as React.FormEvent)
+        }
+    }
+
     if (!session) return null
 
     return (
@@ -53,6 +59,7 @@ export function PostForm() {
                                 placeholder="有什么新鲜事？"
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 className="min-h-[120px] resize-none border-none p-0 text-xl placeholder:text-muted-foreground focus-visible:ring-0"
                                 maxLength={280}
                             />
