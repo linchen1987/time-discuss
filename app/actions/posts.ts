@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-export async function createPost(content: string) {
+export async function createPost(content: string, imageUrls?: string[]) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -55,6 +55,15 @@ export async function createPost(content: string) {
         },
       },
       contentHtml: content,
+      images:
+        imageUrls && imageUrls.length > 0
+          ? {
+              create: imageUrls.map((url) => ({
+                url,
+                altText: '',
+              })),
+            }
+          : undefined,
     },
   });
 
