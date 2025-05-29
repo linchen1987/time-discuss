@@ -116,7 +116,7 @@ export function PostForm() {
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                className="min-h-[120px] resize-none border-none p-0 text-xl placeholder:text-muted-foreground focus-visible:ring-0"
+                                className="min-h-[120px] resize-none border-none px-4 py-3 text-xl placeholder:text-muted-foreground focus-visible:ring-0"
                                 maxLength={280}
                             />
 

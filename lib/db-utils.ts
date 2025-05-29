@@ -106,11 +106,11 @@ export const postOperations = {
   },
 
   // 创建新帖子
-  async create(data: { authorId: string; lexicalState: any; contentHtml?: string; images?: { url: string; altText?: string }[] }) {
+  async create(data: { authorId: string; lexicalState: Record<string, unknown>; contentHtml?: string; images?: { url: string; altText?: string }[] }) {
     return await prisma.post.create({
       data: {
         authorId: data.authorId,
-        lexicalState: data.lexicalState,
+        lexicalState: data.lexicalState as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         contentHtml: data.contentHtml,
         images: data.images
           ? {

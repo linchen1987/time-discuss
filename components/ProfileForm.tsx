@@ -130,7 +130,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                     onChange={handleFileChange}
                     className="hidden"
                 />
-                <p className="text-sm text-gray-600 text-center">
+                <p className="text-sm text-muted-foreground text-center">
                     点击头像更换图片<br />
                     支持 JPEG、PNG、WebP、GIF 格式，最大 5MB
                 </p>
@@ -144,9 +144,9 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                         id="username"
                         value={user.username || ''}
                         disabled
-                        className="bg-gray-50"
+                        className="bg-muted"
                     />
-                    <p className="text-sm text-gray-500 mt-1">用户名不可修改</p>
+                    <p className="text-sm text-muted-foreground mt-1">用户名不可修改</p>
                 </div>
 
                 <div>
@@ -156,9 +156,9 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                         type="email"
                         value={user.email || ''}
                         disabled
-                        className="bg-gray-50"
+                        className="bg-muted"
                     />
-                    <p className="text-sm text-gray-500 mt-1">邮箱不可修改</p>
+                    <p className="text-sm text-muted-foreground mt-1">邮箱不可修改</p>
                 </div>
 
                 <div>
@@ -170,7 +170,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                         placeholder="请输入昵称"
                         maxLength={50}
                     />
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         {name.length}/50 字符
                     </p>
                 </div>
