@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Home, User, Bell, LogOut } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface ExtendedUser {
     name?: string | null;
@@ -43,6 +44,9 @@ export function Sidebar() {
                             个人资料
                         </Button>
                     </Link>
+
+                    {/* Theme Toggle */}
+                    <ThemeToggle />
                 </nav>
 
                 {/* User Info */}
