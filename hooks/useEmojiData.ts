@@ -1,23 +1,21 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { Emoji, Sticker, EmojiCategory, StickerPack } from '@/lib/emoji/data';
+import type { Emoji, EmojiCategory } from '@/lib/emoji/data';
 
-interface EmojiStickerData {
+interface EmojiData {
   emojis: EmojiCategory[];
-  stickers: StickerPack[];
   timestamp: number;
 }
 
 interface SearchResults {
   emojis: Emoji[];
-  stickers: Sticker[];
   hasResults: boolean;
 }
 
 // 缓存管理
-const CACHE_KEY = 'emoji-sticker-data';
+const CACHE_KEY = 'emoji-data';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时
 
-function getCachedEmojiData(): EmojiStickerData | null {
+function getCachedEmojiData(): EmojiData | null {
   if (typeof window === 'undefined') return null;
 
   try {
@@ -28,7 +26,7 @@ function getCachedEmojiData(): EmojiStickerData | null {
   }
 }
 
-function setCachedEmojiData(data: EmojiStickerData) {
+function setCachedEmojiData(data: EmojiData) {
   if (typeof window === 'undefined') return;
 
   try {
@@ -44,7 +42,7 @@ function isCacheValid(timestamp: number): boolean {
 
 // 主Hook
 export function useEmojiData() {
-  const [data, setData] = useState<EmojiStickerData | null>(null);
+  const [data, setData] = useState<EmojiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,7 +60,7 @@ export function useEmojiData() {
       }
 
       // 从API获取数据
-      const response = await fetch('/api/emojis-stickers');
+      const response = await fetch('/api/emojis');
       if (!response.ok) throw new Error('Failed to fetch');
 
       const newData = await response.json();
@@ -85,12 +83,11 @@ export function useEmojiData() {
 }
 
 // 搜索Hook
-export function useEmojiSearch(data: EmojiStickerData | null, query: string): SearchResults {
+export function useEmojiSearch(data: EmojiData | null, query: string): SearchResults {
   return useMemo(() => {
     if (!data || !query.trim()) {
       return {
         emojis: [],
-        stickers: [],
         hasResults: false,
       };
     }
@@ -110,23 +107,9 @@ export function useEmojiSearch(data: EmojiStickerData | null, query: string): Se
       });
     });
 
-    // 搜索 Stickers
-    const matchedStickers: Sticker[] = [];
-    data.stickers.forEach((pack) => {
-      pack.stickers.forEach((sticker) => {
-        const matchesName = sticker.name.toLowerCase().includes(normalizedQuery);
-        const matchesKeywords = sticker.keywords.some((keyword) => keyword.toLowerCase().includes(normalizedQuery));
-
-        if (matchesName || matchesKeywords) {
-          matchedStickers.push(sticker);
-        }
-      });
-    });
-
     return {
       emojis: matchedEmojis,
-      stickers: matchedStickers,
-      hasResults: matchedEmojis.length > 0 || matchedStickers.length > 0,
+      hasResults: matchedEmojis.length > 0,
     };
   }, [data, query]);
 }
@@ -136,7 +119,7 @@ export class RecentEmojiManager {
   private static readonly STORAGE_KEY = 'recent-emojis';
   private static readonly MAX_RECENT = 24;
 
-  static getRecentEmojis(): (Emoji | Sticker)[] {
+  static getRecentEmojis(): Emoji[] {
     if (typeof window === 'undefined') return [];
 
     try {
@@ -147,7 +130,7 @@ export class RecentEmojiManager {
     }
   }
 
-  static addRecentEmoji(emoji: Emoji | Sticker) {
+  static addRecentEmoji(emoji: Emoji) {
     if (typeof window === 'undefined') return;
 
     const recent = this.getRecentEmojis();
@@ -174,13 +157,13 @@ export class RecentEmojiManager {
 
 // 最近使用Hook
 export function useRecentEmojis() {
-  const [recentEmojis, setRecentEmojis] = useState<(Emoji | Sticker)[]>([]);
+  const [recentEmojis, setRecentEmojis] = useState<Emoji[]>([]);
 
   useEffect(() => {
     setRecentEmojis(RecentEmojiManager.getRecentEmojis());
   }, []);
 
-  const addRecentEmoji = (emoji: Emoji | Sticker) => {
+  const addRecentEmoji = (emoji: Emoji) => {
     RecentEmojiManager.addRecentEmoji(emoji);
     setRecentEmojis(RecentEmojiManager.getRecentEmojis());
   };

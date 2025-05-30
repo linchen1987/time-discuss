@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAllEmojiData, searchEmojiData } from '@/lib/emoji/data';
 
-// 获取全量表情包数据
+// 获取全量表情数据
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -12,7 +12,6 @@ export async function GET(request: Request) {
       const searchResults = searchEmojiData(searchQuery);
       return NextResponse.json({
         emojis: [],
-        stickers: [],
         searchResults,
         timestamp: Date.now(),
       });
@@ -22,7 +21,7 @@ export async function GET(request: Request) {
     const data = getAllEmojiData();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Failed to fetch emoji-sticker data:', error);
+    console.error('Failed to fetch emoji data:', error);
     return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }

@@ -2,16 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useEmojiData, useEmojiSearch, useRecentEmojis } from '@/hooks/useEmojiData'
-import type { Emoji, Sticker } from '@/lib/emoji/data'
+import type { Emoji } from '@/lib/emoji/data'
 
 interface EmojiPickerProps {
-    onSelect: (emoji: Emoji | Sticker) => void
+    onSelect: (emoji: Emoji) => void
     onClose: () => void
     position?: { x: number; y: number }
 }
 
 export default function EmojiPicker({ onSelect, onClose, position }: EmojiPickerProps) {
-    const [activeTab, setActiveTab] = useState<'recent' | 'emoji' | 'stickers'>('recent')
+    const [activeTab, setActiveTab] = useState<'recent' | 'emoji'>('recent')
     const [searchQuery, setSearchQuery] = useState('')
     const { data, loading, error } = useEmojiData()
     const searchResults = useEmojiSearch(data, searchQuery)
@@ -19,9 +19,9 @@ export default function EmojiPicker({ onSelect, onClose, position }: EmojiPicker
     const pickerRef = useRef<HTMLDivElement>(null)
 
     // 处理选择表情
-    const handleSelect = (item: Emoji | Sticker) => {
-        addRecentEmoji(item)
-        onSelect(item)
+    const handleSelect = (emoji: Emoji) => {
+        addRecentEmoji(emoji)
+        onSelect(emoji)
         onClose()
     }
 
@@ -96,59 +96,21 @@ export default function EmojiPicker({ onSelect, onClose, position }: EmojiPicker
             {searchQuery.trim() && (
                 <div className="flex-1 overflow-y-auto p-3">
                     {searchResults.hasResults ? (
-                        <>
-                            {searchResults.emojis.length > 0 && (
-                                <div className="mb-4">
-                                    <h3 className="text-sm font-medium mb-2 text-gray-700">Emoji</h3>
-                                    <div className="grid grid-cols-8 gap-1">
-                                        {searchResults.emojis.map(emoji => (
-                                            <button
-                                                key={emoji.id}
-                                                onClick={() => handleSelect(emoji)}
-                                                className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded transition-colors"
-                                                title={emoji.name}
-                                            >
-                                                {emoji.unicode}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {searchResults.stickers.length > 0 && (
-                                <div className="mb-4">
-                                    <h3 className="text-sm font-medium mb-2 text-gray-700">表情包</h3>
-                                    <div className="grid grid-cols-6 gap-2">
-                                        {searchResults.stickers.map(sticker => (
-                                            <button
-                                                key={sticker.id}
-                                                onClick={() => handleSelect(sticker)}
-                                                className="w-10 h-10 flex flex-col items-center justify-center hover:bg-gray-100 rounded transition-colors p-1"
-                                                title={sticker.name}
-                                            >
-                                                {sticker.fallbackEmoji ? (
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-lg">{sticker.fallbackEmoji}</span>
-                                                        <span className="text-xs text-gray-600 leading-none">{sticker.name}</span>
-                                                    </div>
-                                                ) : (
-                                                    <img
-                                                        src={sticker.imageUrl}
-                                                        alt={sticker.name}
-                                                        className="w-8 h-8 object-contain"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement
-                                                            target.style.display = 'none'
-                                                            target.parentElement!.innerHTML = `<span class="text-xs text-gray-500">${sticker.name}</span>`
-                                                        }}
-                                                    />
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </>
+                        <div className="mb-4">
+                            <h3 className="text-sm font-medium mb-2 text-gray-700">Emoji</h3>
+                            <div className="grid grid-cols-8 gap-1">
+                                {searchResults.emojis.map(emoji => (
+                                    <button
+                                        key={emoji.id}
+                                        onClick={() => handleSelect(emoji)}
+                                        className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded transition-colors"
+                                        title={emoji.name}
+                                    >
+                                        {emoji.unicode}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     ) : (
                         <div className="text-center text-gray-500 py-8">
                             没有找到相关表情
@@ -180,15 +142,6 @@ export default function EmojiPicker({ onSelect, onClose, position }: EmojiPicker
                         >
                             😀 Emoji
                         </button>
-                        <button
-                            onClick={() => setActiveTab('stickers')}
-                            className={`flex-1 py-2 px-3 text-sm font-medium transition-colors ${activeTab === 'stickers'
-                                ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
-                                : 'text-gray-600 hover:text-gray-800'
-                                }`}
-                        >
-                            🎭 表情包
-                        </button>
                     </div>
 
                     {/* 内容区域 */}
@@ -197,29 +150,14 @@ export default function EmojiPicker({ onSelect, onClose, position }: EmojiPicker
                             <div>
                                 {recentEmojis.length > 0 ? (
                                     <div className="grid grid-cols-8 gap-1">
-                                        {recentEmojis.map((item, index) => (
+                                        {recentEmojis.map((emoji, index) => (
                                             <button
-                                                key={`${item.id}-${index}`}
-                                                onClick={() => handleSelect(item)}
+                                                key={`${emoji.id}-${index}`}
+                                                onClick={() => handleSelect(emoji)}
                                                 className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded transition-colors"
-                                                title={item.name}
+                                                title={emoji.name}
                                             >
-                                                {'unicode' in item ? (
-                                                    <span className="text-lg">{item.unicode}</span>
-                                                ) : 'fallbackEmoji' in item && item.fallbackEmoji ? (
-                                                    <span className="text-lg" title={item.name}>{item.fallbackEmoji}</span>
-                                                ) : (
-                                                    <img
-                                                        src={item.imageUrl}
-                                                        alt={item.name}
-                                                        className="w-6 h-6 object-contain"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement
-                                                            target.style.display = 'none'
-                                                            target.parentElement!.innerHTML = `<span class="text-xs text-gray-500" title="${item.name}">${item.name}</span>`
-                                                        }}
-                                                    />
-                                                )}
+                                                <span className="text-lg">{emoji.unicode}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -247,46 +185,6 @@ export default function EmojiPicker({ onSelect, onClose, position }: EmojiPicker
                                                     title={emoji.name}
                                                 >
                                                     {emoji.unicode}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {activeTab === 'stickers' && (
-                            <div>
-                                {data.stickers.map(pack => (
-                                    <div key={pack.id} className="mb-4">
-                                        <h3 className="text-sm font-medium mb-2 text-gray-700">
-                                            {pack.name}
-                                        </h3>
-                                        <div className="grid grid-cols-6 gap-2">
-                                            {pack.stickers.map(sticker => (
-                                                <button
-                                                    key={sticker.id}
-                                                    onClick={() => handleSelect(sticker)}
-                                                    className="w-12 h-12 flex flex-col items-center justify-center hover:bg-gray-100 rounded transition-colors p-1"
-                                                    title={sticker.name}
-                                                >
-                                                    {sticker.fallbackEmoji ? (
-                                                        <div className="flex flex-col items-center">
-                                                            <span className="text-lg">{sticker.fallbackEmoji}</span>
-                                                            <span className="text-xs text-gray-600 leading-none truncate max-w-full">{sticker.name}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <img
-                                                            src={sticker.imageUrl}
-                                                            alt={sticker.name}
-                                                            className="w-8 h-8 object-contain"
-                                                            onError={(e) => {
-                                                                const target = e.target as HTMLImageElement
-                                                                target.style.display = 'none'
-                                                                target.parentElement!.innerHTML = `<span class="text-xs text-gray-500">${sticker.name}</span>`
-                                                            }}
-                                                        />
-                                                    )}
                                                 </button>
                                             ))}
                                         </div>

@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import EmojiPicker from '@/components/emoji/EmojiPicker'
-import type { Emoji, Sticker } from '@/lib/emoji/data'
+import type { Emoji } from '@/lib/emoji/data'
 
 export default function EmojiDemoPage() {
     const [showPicker, setShowPicker] = useState(false)
-    const [selectedEmojis, setSelectedEmojis] = useState<(Emoji | Sticker)[]>([])
+    const [selectedEmojis, setSelectedEmojis] = useState<Emoji[]>([])
 
-    const handleEmojiSelect = (emoji: Emoji | Sticker) => {
+    const handleEmojiSelect = (emoji: Emoji) => {
         setSelectedEmojis(prev => [...prev, emoji])
     }
 
@@ -21,58 +21,88 @@ export default function EmojiDemoPage() {
             <div className="max-w-4xl mx-auto px-4">
                 <div className="bg-white rounded-lg shadow-sm p-6">
                     <h1 className="text-2xl font-bold text-gray-900 mb-6">
-                        微信经典表情包演示
+                        Emoji 表情演示
                     </h1>
 
                     <div className="space-y-6">
                         {/* 介绍 */}
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                             <h2 className="text-lg font-semibold text-blue-900 mb-2">
-                                🎭 表情包功能介绍
+                                😊 Emoji 功能介绍
                             </h2>
                             <ul className="text-blue-800 space-y-1 text-sm">
-                                <li>• 包含微信经典表情包和标准 Emoji</li>
+                                <li>• 包含常用的标准 Emoji 表情</li>
                                 <li>• 支持按关键词搜索表情</li>
                                 <li>• 记录最近使用的表情</li>
-                                <li>• 支持中文关键词搜索（如：狗头、doge、微笑等）</li>
-                                <li>• 表情包目前使用emoji作为占位符显示（含名称标签）</li>
+                                <li>• 支持中文关键词搜索（如：微笑、思考、赞等）</li>
                             </ul>
                         </div>
 
-                        {/* 表情包收录清单 */}
+                        {/* 表情分类说明 */}
                         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                             <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                                📋 收录的微信经典表情
+                                📋 表情分类
                             </h2>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
-                                    <h3 className="font-medium text-gray-700 mb-2">基础表情：</h3>
+                                    <h3 className="font-medium text-gray-700 mb-2">😊 笑脸表情（34个）：</h3>
                                     <ul className="text-gray-600 space-y-1">
-                                        <li>• 微笑、撇嘴、色、发呆</li>
-                                        <li>• 得意、流泪、害羞、闭嘴</li>
-                                        <li>• 睡、大哭、尴尬、发怒</li>
-                                        <li>• 调皮、呲牙、惊讶、难过</li>
+                                        <li>• 嘿嘿、哈哈、笑哭了、呵呵</li>
+                                        <li>• 眨眼、害羞、花痴、飞吻</li>
+                                        <li>• 思考、冷漠、翻白眼、累死了</li>
+                                        <li>• 爱心眼、星星眼、庆祝、坏笑</li>
+                                        <li>• 睡觉、流口水、戴口罩、墨镜</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <h3 className="font-medium text-gray-700 mb-2">动作表情：</h3>
+                                    <h3 className="font-medium text-gray-700 mb-2">👍 手势表情（18个）：</h3>
                                     <ul className="text-gray-600 space-y-1">
-                                        <li>• 鼓掌、强、弱、握手</li>
-                                        <li>• 胜利、拥抱、拳头</li>
+                                        <li>• 赞、踩、鼓掌、挥手</li>
+                                        <li>• OK、胜利、拳头、爱心</li>
+                                        <li>• 祈祷、肌肉、指向、交叉手指</li>
+                                        <li>• 嘘、握手、爱心手势</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <h3 className="font-medium text-gray-700 mb-2">2020新增：</h3>
+                                    <h3 className="font-medium text-gray-700 mb-2">🐱 动物表情（16个）：</h3>
                                     <ul className="text-gray-600 space-y-1">
-                                        <li>• 翻白眼、666、让我看看</li>
-                                        <li>• 叹气、苦涩、裂开</li>
+                                        <li>• 猫咪、狗狗、老鼠、仓鼠</li>
+                                        <li>• 兔子、狐狸、熊、熊猫</li>
+                                        <li>• 考拉、老虎、狮子、猪</li>
+                                        <li>• 猴子、鸡、企鹅、鸟</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-700 mb-2">🍎 食物表情（16个）：</h3>
+                                    <ul className="text-gray-600 space-y-1">
+                                        <li>• 苹果、香蕉、葡萄、草莓</li>
+                                        <li>• 西瓜、桃子、披萨、汉堡</li>
+                                        <li>• 薯条、热狗、寿司、拉面</li>
+                                        <li>• 蛋糕、冰淇淋、咖啡</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-700 mb-2">⚽ 活动表情（16个）：</h3>
+                                    <ul className="text-gray-600 space-y-1">
+                                        <li>• 足球、篮球、网球、棒球</li>
+                                        <li>• 乒乓球、羽毛球、游泳、跑步</li>
+                                        <li>• 骑行、吉他、钢琴、麦克风</li>
+                                        <li>• 耳机、画画、相机、摄像机</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-700 mb-2">💎 物品表情（16个）：</h3>
+                                    <ul className="text-gray-600 space-y-1">
+                                        <li>• 钻石、戒指、王冠、手表</li>
+                                        <li>• 眼镜、领带、衬衫、牛仔裤</li>
+                                        <li>• 连衣裙、高跟鞋、运动鞋、背包</li>
+                                        <li>• 手提包、公文包、雨伞、礼物</li>
                                     </ul>
                                 </div>
                             </div>
                             <div className="mt-4 pt-3 border-t border-gray-200">
-                                <h3 className="font-medium text-gray-700 mb-2">网络经典：</h3>
                                 <p className="text-gray-600 text-sm">
-                                    doge（狗头保命）、黑人问号、pepe、皮卡丘、捂脸等
+                                    <strong>总计：116个常用表情</strong>，涵盖日常聊天的各种场景和情感表达
                                 </p>
                             </div>
                         </div>
@@ -83,7 +113,7 @@ export default function EmojiDemoPage() {
                                 onClick={() => setShowPicker(true)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                🎭 打开表情选择器
+                                😊 打开表情选择器
                             </button>
 
                             {selectedEmojis.length > 0 && (
@@ -103,26 +133,13 @@ export default function EmojiDemoPage() {
                                     ✨ 已选择的表情 ({selectedEmojis.length})
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {selectedEmojis.map((item, index) => (
+                                    {selectedEmojis.map((emoji, index) => (
                                         <div
-                                            key={`${item.id}-${index}`}
+                                            key={`${emoji.id}-${index}`}
                                             className="inline-flex items-center gap-2 bg-white border border-green-300 rounded-lg px-3 py-2"
                                         >
-                                            {'unicode' in item ? (
-                                                <span className="text-xl">{item.unicode}</span>
-                                            ) : (
-                                                <img
-                                                    src={item.imageUrl}
-                                                    alt={item.name}
-                                                    className="w-5 h-5 object-contain"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement
-                                                        target.style.display = 'none'
-                                                        target.nextElementSibling!.textContent = `[${item.name}]`
-                                                    }}
-                                                />
-                                            )}
-                                            <span className="text-sm text-gray-700">{item.name}</span>
+                                            <span className="text-xl">{emoji.unicode}</span>
+                                            <span className="text-sm text-gray-700">{emoji.name}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -137,7 +154,7 @@ export default function EmojiDemoPage() {
                             <div className="text-yellow-800 text-sm space-y-1">
                                 <p>试试搜索这些关键词：</p>
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                    {['狗头', 'doge', '微笑', '666', '翻白眼', '让我看看', '叹气', '裂开', '思考', '皮卡丘', '捂脸'].map(keyword => (
+                                    {['微笑', '思考', '赞', '开心', '生气', '哭', '爱心', '胜利', '翻白眼', '累死了', '猫咪', '狗狗', '熊猫', '苹果', '披萨', '足球', '音乐', '钻石', '王冠', '礼物'].map(keyword => (
                                         <span
                                             key={keyword}
                                             className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs border border-yellow-300"
@@ -157,7 +174,7 @@ export default function EmojiDemoPage() {
                             <ul className="text-gray-700 text-sm space-y-1">
                                 <li>1. 点击&ldquo;打开表情选择器&rdquo;按钮</li>
                                 <li>2. 可以在搜索框输入关键词搜索表情</li>
-                                <li>3. 切换&ldquo;最近&rdquo;、&ldquo;Emoji&rdquo;、&ldquo;表情包&rdquo;标签页浏览</li>
+                                <li>3. 切换&ldquo;最近&rdquo;和&ldquo;Emoji&rdquo;标签页浏览</li>
                                 <li>4. 点击表情即可选择，会自动记录到&ldquo;最近&rdquo;中</li>
                                 <li>5. 按 ESC 键或点击外部区域关闭选择器</li>
                             </ul>

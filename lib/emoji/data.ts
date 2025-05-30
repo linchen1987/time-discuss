@@ -8,17 +8,6 @@ export interface Emoji {
   fallbackEmoji?: string;
 }
 
-export interface Sticker {
-  id: string;
-  name: string;
-  keywords: string[];
-  imageUrl: string;
-  animated: boolean;
-  width: number;
-  height: number;
-  fallbackEmoji?: string;
-}
-
 export interface EmojiCategory {
   id: string;
   name: string;
@@ -26,15 +15,7 @@ export interface EmojiCategory {
   emojis: Emoji[];
 }
 
-export interface StickerPack {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  stickers: Sticker[];
-}
-
-// 标准 Emoji 数据 - 只包含最常用的表情
+// 标准 Emoji 数据 - 常用表情
 export const EMOJI_CATEGORIES: EmojiCategory[] = [
   {
     id: 'smileys',
@@ -61,6 +42,21 @@ export const EMOJI_CATEGORIES: EmojiCategory[] = [
       { id: 'sweat', unicode: '😅', name: '苦笑', keywords: ['苦笑', '尴尬', '冷汗'], category: 'smileys' },
       { id: 'fearful', unicode: '😨', name: '害怕', keywords: ['害怕', '惊恐', '吓到'], category: 'smileys' },
       { id: 'confused', unicode: '😕', name: '困扰', keywords: ['困扰', '疑惑', '不解'], category: 'smileys' },
+
+      { id: 'laughing', unicode: '😆', name: '笑得合不拢嘴', keywords: ['大笑', '哈哈', '开心'], category: 'smileys' },
+      { id: 'smiling_with_heart_eyes', unicode: '🥰', name: '爱心眼', keywords: ['爱心', '喜欢', '满足'], category: 'smileys' },
+      { id: 'star_struck', unicode: '🤩', name: '星星眼', keywords: ['星星眼', '崇拜', '兴奋'], category: 'smileys' },
+      { id: 'partying_face', unicode: '🥳', name: '庆祝', keywords: ['庆祝', '派对', '开心'], category: 'smileys' },
+      { id: 'smirking', unicode: '😏', name: '坏笑', keywords: ['坏笑', '得意', '调皮'], category: 'smileys' },
+      { id: 'sleepy', unicode: '😴', name: '睡觉', keywords: ['睡觉', '困', 'zzz'], category: 'smileys' },
+      { id: 'drooling', unicode: '🤤', name: '流口水', keywords: ['流口水', '垂涎', '好吃'], category: 'smileys' },
+      { id: 'yawning', unicode: '🥱', name: '打哈欠', keywords: ['打哈欠', '困', '无聊'], category: 'smileys' },
+      { id: 'mask', unicode: '😷', name: '戴口罩', keywords: ['口罩', '生病', '防护'], category: 'smileys' },
+      { id: 'sunglasses', unicode: '😎', name: '墨镜', keywords: ['墨镜', '酷', '帅气'], category: 'smileys' },
+      { id: 'nerd', unicode: '🤓', name: '书呆子', keywords: ['书呆子', '眼镜', '学霸'], category: 'smileys' },
+      { id: 'shocked', unicode: '😱', name: '震惊', keywords: ['震惊', '吃惊', '恐惧'], category: 'smileys' },
+      { id: 'zipper_mouth', unicode: '🤐', name: '闭嘴', keywords: ['闭嘴', '拉链', '保密'], category: 'smileys' },
+      { id: 'money_mouth', unicode: '🤑', name: '财迷', keywords: ['财迷', '钱', '贪婪'], category: 'smileys' },
     ],
   },
   {
@@ -76,470 +72,125 @@ export const EMOJI_CATEGORIES: EmojiCategory[] = [
       { id: 'v', unicode: '✌️', name: '胜利', keywords: ['胜利', 'V', '耶'], category: 'gestures' },
       { id: 'fist', unicode: '✊', name: '拳头', keywords: ['拳头', '加油', '团结'], category: 'gestures' },
       { id: 'heart', unicode: '❤️', name: '爱心', keywords: ['爱心', '喜欢', '爱'], category: 'gestures' },
+
+      { id: 'pray', unicode: '🙏', name: '祈祷', keywords: ['祈祷', '拜托', '谢谢'], category: 'gestures' },
+      { id: 'muscle', unicode: '💪', name: '肌肉', keywords: ['肌肉', '强壮', '加油'], category: 'gestures' },
+      { id: 'point_up', unicode: '☝️', name: '指向上', keywords: ['指向上', '注意', '重点'], category: 'gestures' },
+      { id: 'point_right', unicode: '👉', name: '指向右', keywords: ['指向右', '看这里', '指出'], category: 'gestures' },
+      { id: 'point_left', unicode: '👈', name: '指向左', keywords: ['指向左', '那边', '指向'], category: 'gestures' },
+      { id: 'point_down', unicode: '👇', name: '指向下', keywords: ['指向下', '看下面', '往下'], category: 'gestures' },
+      { id: 'crossed_fingers', unicode: '🤞', name: '交叉手指', keywords: ['交叉手指', '祈求', '好运'], category: 'gestures' },
+      { id: 'shh', unicode: '🤫', name: '嘘', keywords: ['嘘', '安静', '保密'], category: 'gestures' },
+      { id: 'handshake', unicode: '🤝', name: '握手', keywords: ['握手', '合作', '协议'], category: 'gestures' },
+      { id: 'heart_hands', unicode: '🫶', name: '爱心手势', keywords: ['爱心手势', '爱', '关怀'], category: 'gestures' },
+    ],
+  },
+  {
+    id: 'animals',
+    name: '动物',
+    icon: '🐱',
+    emojis: [
+      { id: 'cat', unicode: '🐱', name: '猫咪', keywords: ['猫', '猫咪', '萌'], category: 'animals' },
+      { id: 'dog', unicode: '🐶', name: '狗狗', keywords: ['狗', '狗狗', '萌'], category: 'animals' },
+      { id: 'mouse', unicode: '🐭', name: '老鼠', keywords: ['老鼠', '鼠', '小'], category: 'animals' },
+      { id: 'hamster', unicode: '🐹', name: '仓鼠', keywords: ['仓鼠', '萌', '小动物'], category: 'animals' },
+      { id: 'rabbit', unicode: '🐰', name: '兔子', keywords: ['兔子', '萌', '可爱'], category: 'animals' },
+      { id: 'fox', unicode: '🦊', name: '狐狸', keywords: ['狐狸', '聪明', '狡猾'], category: 'animals' },
+      { id: 'bear', unicode: '🐻', name: '熊', keywords: ['熊', '可爱', '毛茸茸'], category: 'animals' },
+      { id: 'panda', unicode: '🐼', name: '熊猫', keywords: ['熊猫', '可爱', '国宝'], category: 'animals' },
+      { id: 'koala', unicode: '🐨', name: '考拉', keywords: ['考拉', '可爱', '澳洲'], category: 'animals' },
+      { id: 'tiger', unicode: '🐯', name: '老虎', keywords: ['老虎', '威猛', '王者'], category: 'animals' },
+      { id: 'lion', unicode: '🦁', name: '狮子', keywords: ['狮子', '威猛', '王者'], category: 'animals' },
+      { id: 'pig', unicode: '🐷', name: '猪', keywords: ['猪', '可爱', '肥'], category: 'animals' },
+      { id: 'monkey', unicode: '🐵', name: '猴子', keywords: ['猴子', '调皮', '聪明'], category: 'animals' },
+      { id: 'chicken', unicode: '🐔', name: '鸡', keywords: ['鸡', '公鸡', '动物'], category: 'animals' },
+      { id: 'penguin', unicode: '🐧', name: '企鹅', keywords: ['企鹅', '可爱', '南极'], category: 'animals' },
+      { id: 'bird', unicode: '🐦', name: '鸟', keywords: ['鸟', '飞翔', '自由'], category: 'animals' },
+    ],
+  },
+  {
+    id: 'food',
+    name: '食物',
+    icon: '🍎',
+    emojis: [
+      { id: 'apple', unicode: '🍎', name: '苹果', keywords: ['苹果', '水果', '健康'], category: 'food' },
+      { id: 'banana', unicode: '🍌', name: '香蕉', keywords: ['香蕉', '水果', '黄色'], category: 'food' },
+      { id: 'grapes', unicode: '🍇', name: '葡萄', keywords: ['葡萄', '水果', '紫色'], category: 'food' },
+      { id: 'strawberry', unicode: '🍓', name: '草莓', keywords: ['草莓', '水果', '甜'], category: 'food' },
+      { id: 'watermelon', unicode: '🍉', name: '西瓜', keywords: ['西瓜', '水果', '夏天'], category: 'food' },
+      { id: 'peach', unicode: '🍑', name: '桃子', keywords: ['桃子', '水果', '粉色'], category: 'food' },
+      { id: 'pizza', unicode: '🍕', name: '披萨', keywords: ['披萨', '快餐', '美食'], category: 'food' },
+      { id: 'hamburger', unicode: '🍔', name: '汉堡', keywords: ['汉堡', '快餐', '美食'], category: 'food' },
+      { id: 'fries', unicode: '🍟', name: '薯条', keywords: ['薯条', '快餐', '炸'], category: 'food' },
+      { id: 'hot_dog', unicode: '🌭', name: '热狗', keywords: ['热狗', '快餐', '香肠'], category: 'food' },
+      { id: 'taco', unicode: '🌮', name: '墨西哥卷', keywords: ['墨西哥卷', '美食', '辣'], category: 'food' },
+      { id: 'sushi', unicode: '🍣', name: '寿司', keywords: ['寿司', '日料', '鱼'], category: 'food' },
+      { id: 'ramen', unicode: '🍜', name: '拉面', keywords: ['拉面', '面条', '热汤'], category: 'food' },
+      { id: 'cake', unicode: '🍰', name: '蛋糕', keywords: ['蛋糕', '甜点', '庆祝'], category: 'food' },
+      { id: 'ice_cream', unicode: '🍦', name: '冰淇淋', keywords: ['冰淇淋', '甜点', '凉爽'], category: 'food' },
+      { id: 'coffee', unicode: '☕', name: '咖啡', keywords: ['咖啡', '提神', '苦'], category: 'food' },
+    ],
+  },
+  {
+    id: 'activities',
+    name: '活动',
+    icon: '⚽',
+    emojis: [
+      { id: 'soccer', unicode: '⚽', name: '足球', keywords: ['足球', '运动', '球'], category: 'activities' },
+      { id: 'basketball', unicode: '🏀', name: '篮球', keywords: ['篮球', '运动', '球'], category: 'activities' },
+      { id: 'tennis', unicode: '🎾', name: '网球', keywords: ['网球', '运动', '球'], category: 'activities' },
+      { id: 'baseball', unicode: '⚾', name: '棒球', keywords: ['棒球', '运动', '球'], category: 'activities' },
+      { id: 'ping_pong', unicode: '🏓', name: '乒乓球', keywords: ['乒乓球', '运动', '球'], category: 'activities' },
+      { id: 'badminton', unicode: '🏸', name: '羽毛球', keywords: ['羽毛球', '运动', '球'], category: 'activities' },
+      { id: 'swimming', unicode: '🏊', name: '游泳', keywords: ['游泳', '运动', '水'], category: 'activities' },
+      { id: 'running', unicode: '🏃', name: '跑步', keywords: ['跑步', '运动', '健身'], category: 'activities' },
+      { id: 'cycling', unicode: '🚴', name: '骑行', keywords: ['骑行', '自行车', '运动'], category: 'activities' },
+      { id: 'guitar', unicode: '🎸', name: '吉他', keywords: ['吉他', '音乐', '乐器'], category: 'activities' },
+      { id: 'piano', unicode: '🎹', name: '钢琴', keywords: ['钢琴', '音乐', '乐器'], category: 'activities' },
+      { id: 'microphone', unicode: '🎤', name: '麦克风', keywords: ['麦克风', '唱歌', '音乐'], category: 'activities' },
+      { id: 'headphones', unicode: '🎧', name: '耳机', keywords: ['耳机', '音乐', '听歌'], category: 'activities' },
+      { id: 'art', unicode: '🎨', name: '调色板', keywords: ['画画', '艺术', '创作'], category: 'activities' },
+      { id: 'camera', unicode: '📷', name: '相机', keywords: ['相机', '拍照', '摄影'], category: 'activities' },
+      { id: 'video_camera', unicode: '📹', name: '摄像机', keywords: ['摄像机', '录像', '视频'], category: 'activities' },
+    ],
+  },
+  {
+    id: 'objects',
+    name: '物品',
+    icon: '💎',
+    emojis: [
+      { id: 'diamond', unicode: '💎', name: '钻石', keywords: ['钻石', '宝石', '昂贵'], category: 'objects' },
+      { id: 'ring', unicode: '💍', name: '戒指', keywords: ['戒指', '结婚', '爱情'], category: 'objects' },
+      { id: 'crown', unicode: '👑', name: '王冠', keywords: ['王冠', '皇室', '尊贵'], category: 'objects' },
+      { id: 'watch', unicode: '⌚', name: '手表', keywords: ['手表', '时间', '配饰'], category: 'objects' },
+      { id: 'glasses', unicode: '👓', name: '眼镜', keywords: ['眼镜', '视力', '配饰'], category: 'objects' },
+      { id: 'necktie', unicode: '👔', name: '领带', keywords: ['领带', '正装', '商务'], category: 'objects' },
+      { id: 'shirt', unicode: '👕', name: '衬衫', keywords: ['衬衫', '衣服', '穿着'], category: 'objects' },
+      { id: 'jeans', unicode: '👖', name: '牛仔裤', keywords: ['牛仔裤', '裤子', '衣服'], category: 'objects' },
+      { id: 'dress', unicode: '👗', name: '连衣裙', keywords: ['连衣裙', '裙子', '女装'], category: 'objects' },
+      { id: 'high_heel', unicode: '👠', name: '高跟鞋', keywords: ['高跟鞋', '鞋子', '女鞋'], category: 'objects' },
+      { id: 'sneaker', unicode: '👟', name: '运动鞋', keywords: ['运动鞋', '鞋子', '舒适'], category: 'objects' },
+      { id: 'backpack', unicode: '🎒', name: '背包', keywords: ['背包', '包', '学生'], category: 'objects' },
+      { id: 'handbag', unicode: '👜', name: '手提包', keywords: ['手提包', '包', '女包'], category: 'objects' },
+      { id: 'briefcase', unicode: '💼', name: '公文包', keywords: ['公文包', '工作', '商务'], category: 'objects' },
+      { id: 'umbrella', unicode: '☂️', name: '雨伞', keywords: ['雨伞', '下雨', '遮阳'], category: 'objects' },
+      { id: 'gift', unicode: '🎁', name: '礼物', keywords: ['礼物', '惊喜', '庆祝'], category: 'objects' },
     ],
   },
 ];
 
-// 微信经典表情包数据 - 基于搜索结果中的经典表情
-export const WECHAT_STICKER_PACKS: StickerPack[] = [
-  {
-    id: 'wechat_classic',
-    name: '微信经典',
-    description: '微信最经典的表情包合集',
-    icon: '/stickers/wechat/smile.png',
-    stickers: [
-      // 基础表情 - 最常用的
-      {
-        id: 'smile',
-        name: '微笑',
-        keywords: ['微笑', '开心', '高兴'],
-        imageUrl: '/stickers/wechat/smile.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😊',
-      },
-      {
-        id: 'grimace',
-        name: '撇嘴',
-        keywords: ['撇嘴', '不满', '郁闷'],
-        imageUrl: '/stickers/wechat/grimace.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😒',
-      },
-      {
-        id: 'drool',
-        name: '色',
-        keywords: ['色', '流口水', '垂涎'],
-        imageUrl: '/stickers/wechat/drool.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤤',
-      },
-      {
-        id: 'scowl',
-        name: '发呆',
-        keywords: ['发呆', '愣神', '茫然'],
-        imageUrl: '/stickers/wechat/scowl.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😶',
-      },
-      {
-        id: 'cool_guy',
-        name: '得意',
-        keywords: ['得意', '酷', '墨镜'],
-        imageUrl: '/stickers/wechat/cool_guy.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😎',
-      },
-      {
-        id: 'sob',
-        name: '流泪',
-        keywords: ['流泪', '哭', '伤心'],
-        imageUrl: '/stickers/wechat/sob.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😢',
-      },
-      {
-        id: 'shy',
-        name: '害羞',
-        keywords: ['害羞', '脸红', '不好意思'],
-        imageUrl: '/stickers/wechat/shy.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😳',
-      },
-      {
-        id: 'silent',
-        name: '闭嘴',
-        keywords: ['闭嘴', '沉默', '不说话'],
-        imageUrl: '/stickers/wechat/silent.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤐',
-      },
-      {
-        id: 'sleep',
-        name: '睡',
-        keywords: ['睡觉', '困', 'zzz'],
-        imageUrl: '/stickers/wechat/sleep.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😴',
-      },
-      {
-        id: 'cry',
-        name: '大哭',
-        keywords: ['大哭', '痛哭', '伤心'],
-        imageUrl: '/stickers/wechat/cry.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😭',
-      },
-      {
-        id: 'awkward',
-        name: '尴尬',
-        keywords: ['尴尬', '无语', '汗'],
-        imageUrl: '/stickers/wechat/awkward.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😅',
-      },
-      {
-        id: 'angry',
-        name: '发怒',
-        keywords: ['发怒', '生气', '愤怒'],
-        imageUrl: '/stickers/wechat/angry.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😠',
-      },
-      {
-        id: 'tongue',
-        name: '调皮',
-        keywords: ['调皮', '吐舌头', '淘气'],
-        imageUrl: '/stickers/wechat/tongue.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😛',
-      },
-      {
-        id: 'grin',
-        name: '呲牙',
-        keywords: ['呲牙', '笑', '开心'],
-        imageUrl: '/stickers/wechat/grin.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😁',
-      },
-      {
-        id: 'surprise',
-        name: '惊讶',
-        keywords: ['惊讶', '吃惊', '哇'],
-        imageUrl: '/stickers/wechat/surprise.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😲',
-      },
-      {
-        id: 'frown',
-        name: '难过',
-        keywords: ['难过', '沮丧', '失落'],
-        imageUrl: '/stickers/wechat/frown.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '☹️',
-      },
-
-      // 动作表情
-      {
-        id: 'clap',
-        name: '鼓掌',
-        keywords: ['鼓掌', '赞', '支持'],
-        imageUrl: '/stickers/wechat/clap.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '👏',
-      },
-      {
-        id: 'strong',
-        name: '强',
-        keywords: ['强', '厉害', '赞'],
-        imageUrl: '/stickers/wechat/strong.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '👍',
-      },
-      {
-        id: 'weak',
-        name: '弱',
-        keywords: ['弱', '差', '不行'],
-        imageUrl: '/stickers/wechat/weak.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '👎',
-      },
-      {
-        id: 'shake',
-        name: '握手',
-        keywords: ['握手', '合作', '朋友'],
-        imageUrl: '/stickers/wechat/shake.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤝',
-      },
-      {
-        id: 'victory',
-        name: '胜利',
-        keywords: ['胜利', 'V', '耶'],
-        imageUrl: '/stickers/wechat/victory.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '✌️',
-      },
-      {
-        id: 'hug',
-        name: '拥抱',
-        keywords: ['拥抱', '抱抱', '安慰'],
-        imageUrl: '/stickers/wechat/hug.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤗',
-      },
-      {
-        id: 'fist',
-        name: '拳头',
-        keywords: ['拳头', '加油', '努力'],
-        imageUrl: '/stickers/wechat/fist.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '✊',
-      },
-
-      // 物品表情
-      {
-        id: 'rose',
-        name: '玫瑰',
-        keywords: ['玫瑰', '花', '爱情'],
-        imageUrl: '/stickers/wechat/rose.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🌹',
-      },
-      {
-        id: 'heart',
-        name: '爱心',
-        keywords: ['爱心', '喜欢', '爱'],
-        imageUrl: '/stickers/wechat/heart.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '❤️',
-      },
-      {
-        id: 'broken_heart',
-        name: '心碎',
-        keywords: ['心碎', '伤心', '失恋'],
-        imageUrl: '/stickers/wechat/broken_heart.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '💔',
-      },
-      {
-        id: 'cake',
-        name: '蛋糕',
-        keywords: ['蛋糕', '生日', '庆祝'],
-        imageUrl: '/stickers/wechat/cake.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🎂',
-      },
-      {
-        id: 'beer',
-        name: '啤酒',
-        keywords: ['啤酒', '干杯', '庆祝'],
-        imageUrl: '/stickers/wechat/beer.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🍺',
-      },
-      {
-        id: 'coffee',
-        name: '咖啡',
-        keywords: ['咖啡', '提神', '工作'],
-        imageUrl: '/stickers/wechat/coffee.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '☕',
-      },
-      {
-        id: 'gift',
-        name: '礼物',
-        keywords: ['礼物', '惊喜', '祝福'],
-        imageUrl: '/stickers/wechat/gift.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🎁',
-      },
-
-      // 最新的经典表情（2020年新增的6个）
-      {
-        id: 'eye_roll',
-        name: '翻白眼',
-        keywords: ['翻白眼', '无语', '鄙视'],
-        imageUrl: '/stickers/wechat/eye_roll.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🙄',
-      },
-      {
-        id: '666',
-        name: '666',
-        keywords: ['666', '厉害', '牛'],
-        imageUrl: '/stickers/wechat/666.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🎯',
-      },
-      {
-        id: 'let_me_see',
-        name: '让我看看',
-        keywords: ['让我看看', '瞧瞧', '观察'],
-        imageUrl: '/stickers/wechat/let_me_see.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🧐',
-      },
-      {
-        id: 'sigh',
-        name: '叹气',
-        keywords: ['叹气', '无奈', '哎'],
-        imageUrl: '/stickers/wechat/sigh.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😮‍💨',
-      },
-      {
-        id: 'bitter',
-        name: '苦涩',
-        keywords: ['苦涩', '无奈', '难受'],
-        imageUrl: '/stickers/wechat/bitter.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '😖',
-      },
-      {
-        id: 'crack',
-        name: '裂开',
-        keywords: ['裂开', '崩溃', '破防'],
-        imageUrl: '/stickers/wechat/crack.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤯',
-      },
-    ],
-  },
-  {
-    id: 'internet_classic',
-    name: '网络经典',
-    description: '互联网时代的经典表情包',
-    icon: '/stickers/internet/doge.png',
-    stickers: [
-      {
-        id: 'doge',
-        name: 'doge',
-        keywords: ['doge', '狗头', '柴犬', '保命'],
-        imageUrl: '/stickers/internet/doge.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🐕',
-      },
-      {
-        id: 'thinking_black',
-        name: '黑人问号',
-        keywords: ['思考', '黑人问号', '疑问'],
-        imageUrl: '/stickers/internet/thinking_black.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤔',
-      },
-      {
-        id: 'pepe',
-        name: 'pepe',
-        keywords: ['pepe', '佩佩蛙', '青蛙'],
-        imageUrl: '/stickers/internet/pepe.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🐸',
-      },
-      {
-        id: 'this_is_fine',
-        name: '没事',
-        keywords: ['没事', '淡定', '一切都好'],
-        imageUrl: '/stickers/internet/this_is_fine.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🙂‍🔥',
-      },
-      {
-        id: 'facepalm',
-        name: '捂脸',
-        keywords: ['捂脸', '无语', '尴尬'],
-        imageUrl: '/stickers/internet/facepalm.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '🤦',
-      },
-      {
-        id: 'surprised_pikachu',
-        name: '皮卡丘',
-        keywords: ['皮卡丘', '惊讶', '震惊'],
-        imageUrl: '/stickers/internet/surprised_pikachu.png',
-        animated: false,
-        width: 64,
-        height: 64,
-        fallbackEmoji: '⚡',
-      },
-    ],
-  },
-];
-
-// 获取所有表情包数据的函数
+// 获取所有表情数据的函数
 export function getAllEmojiData() {
   return {
     emojis: EMOJI_CATEGORIES,
-    stickers: WECHAT_STICKER_PACKS,
     timestamp: Date.now(),
   };
 }
 
-// 搜索表情包的函数
+// 搜索表情的函数
 export function searchEmojiData(query: string) {
   const normalizedQuery = query.toLowerCase().trim();
-  if (!normalizedQuery) return { emojis: [], stickers: [], hasResults: false };
+  if (!normalizedQuery) return { emojis: [], hasResults: false };
 
   // 搜索 Emoji
   const matchedEmojis: Emoji[] = [];
@@ -554,22 +205,8 @@ export function searchEmojiData(query: string) {
     });
   });
 
-  // 搜索 Stickers
-  const matchedStickers: Sticker[] = [];
-  WECHAT_STICKER_PACKS.forEach((pack) => {
-    pack.stickers.forEach((sticker) => {
-      const matchesName = sticker.name.toLowerCase().includes(normalizedQuery);
-      const matchesKeywords = sticker.keywords.some((keyword) => keyword.toLowerCase().includes(normalizedQuery));
-
-      if (matchesName || matchesKeywords) {
-        matchedStickers.push(sticker);
-      }
-    });
-  });
-
   return {
     emojis: matchedEmojis,
-    stickers: matchedStickers,
-    hasResults: matchedEmojis.length > 0 || matchedStickers.length > 0,
+    hasResults: matchedEmojis.length > 0,
   };
 }
