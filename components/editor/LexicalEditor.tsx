@@ -29,7 +29,7 @@ const editorTheme = {
         italic: 'italic',
         underline: 'underline',
     },
-    link: 'text-blue-600 underline hover:text-blue-800 cursor-pointer',
+    link: 'text-primary underline hover:text-primary/80 cursor-pointer',
 }
 
 // URL 正则表达式 - 匹配多种 URL 格式
@@ -191,13 +191,13 @@ function ToolbarPlugin() {
     }
 
     return (
-        <div className="border-b border-gray-200 p-2 flex gap-2">
+        <div className="border-b border-border p-2 flex gap-2">
             <button
                 type="button"
                 onClick={formatBold}
                 className={`px-3 py-1 rounded text-sm font-medium transition-colors ${isBold
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
             >
                 <strong>B</strong>
@@ -297,19 +297,19 @@ export default function LexicalEditor({
     }
 
     return (
-        <div className={`border border-gray-300 rounded-md bg-white ${className}`}>
+        <div className={`border border-border rounded-md bg-background ${className}`}>
             <LexicalComposer initialConfig={initialConfig}>
                 {showToolbar && <ToolbarPlugin />}
                 <div className="relative">
                     <RichTextPlugin
                         contentEditable={
                             <ContentEditable
-                                className="min-h-[120px] p-1 text-base leading-relaxed focus:outline-none resize-none"
+                                className="min-h-[120px] p-1 text-base leading-relaxed focus:outline-none resize-none text-foreground"
                                 spellCheck={false}
                             />
                         }
                         placeholder={
-                            <div className="absolute top-1 left-2 text-gray-400 pointer-events-none select-none">
+                            <div className="absolute top-1 left-2 text-muted-foreground pointer-events-none select-none">
                                 {placeholder}
                             </div>
                         }
