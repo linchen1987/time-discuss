@@ -128,6 +128,46 @@ function KeyboardPlugin({ onSubmit }: { onSubmit?: () => void }) {
     return null
 }
 
+// 加粗格式控制插件 - 用于外部控制
+function BoldFormatPlugin() {
+    const [editor] = useLexicalComposerContext()
+
+    useEffect(() => {
+        const handleBoldFormat = () => {
+            editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')
+        }
+
+        // 监听全局加粗格式事件
+        window.addEventListener('formatBold', handleBoldFormat as EventListener)
+
+        return () => {
+            window.removeEventListener('formatBold', handleBoldFormat as EventListener)
+        }
+    }, [editor])
+
+    return null
+}
+
+// 获取当前格式状态的插件
+function FormatStatePlugin({ onFormatChange }: { onFormatChange?: (formats: { isBold: boolean }) => void }) {
+    const [editor] = useLexicalComposerContext()
+
+    useEffect(() => {
+        return editor.registerUpdateListener(({ editorState }) => {
+            editorState.read(() => {
+                const selection = $getSelection()
+                if ($isRangeSelection(selection) && onFormatChange) {
+                    onFormatChange({
+                        isBold: selection.hasFormat('bold')
+                    })
+                }
+            })
+        })
+    }, [editor, onFormatChange])
+
+    return null
+}
+
 // 工具栏组件
 function ToolbarPlugin() {
     const [editor] = useLexicalComposerContext()
@@ -209,6 +249,8 @@ interface LexicalEditorProps {
     onChange?: (editorState: Record<string, unknown>, html: string) => void
     onSubmit?: () => void
     onImagePaste?: (files: File[]) => void
+    onFormatChange?: (formats: { isBold: boolean }) => void
+    showToolbar?: boolean
     className?: string
 }
 
@@ -218,6 +260,8 @@ export default function LexicalEditor({
     onChange,
     onSubmit,
     onImagePaste,
+    onFormatChange,
+    showToolbar = true,
     className = ""
 }: LexicalEditorProps) {
     const initialConfig = {
@@ -247,17 +291,17 @@ export default function LexicalEditor({
     return (
         <div className={`border border-gray-300 rounded-md bg-white ${className}`}>
             <LexicalComposer initialConfig={initialConfig}>
-                <ToolbarPlugin />
+                {showToolbar && <ToolbarPlugin />}
                 <div className="relative">
                     <RichTextPlugin
                         contentEditable={
                             <ContentEditable
-                                className="min-h-[120px] p-4 text-base leading-relaxed focus:outline-none resize-none"
+                                className="min-h-[120px] p-1 text-base leading-relaxed focus:outline-none resize-none"
                                 spellCheck={false}
                             />
                         }
                         placeholder={
-                            <div className="absolute top-4 left-4 text-gray-400 pointer-events-none select-none">
+                            <div className="absolute top-1 left-2 text-gray-400 pointer-events-none select-none">
                                 {placeholder}
                             </div>
                         }
@@ -268,6 +312,8 @@ export default function LexicalEditor({
                     <KeyboardPlugin onSubmit={onSubmit} />
                     <ClipboardPlugin onImagePaste={onImagePaste} />
                     <EmojiInsertPlugin />
+                    <BoldFormatPlugin />
+                    <FormatStatePlugin onFormatChange={onFormatChange} />
                     <IMEFriendlyAutoLinkPlugin />
                 </div>
             </LexicalComposer>

@@ -19,7 +19,7 @@ export function Sidebar() {
     const user = session?.user as ExtendedUser | undefined;
 
     return (
-        <div className="w-64 p-4 hidden md:block">
+        <div className="w-full p-4">
             <div className="space-y-4">
                 {/* Logo */}
                 <div className="px-3 py-2">

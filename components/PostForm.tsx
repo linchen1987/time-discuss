@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { createPost } from "@/app/actions/posts"
 import { toast } from "sonner"
-import { ImagePlus, X, Loader2, Smile } from "lucide-react"
+import { ImagePlus, X, Loader2, Smile, Bold } from "lucide-react"
 import Image from "next/image"
 import LexicalEditor from "./editor/LexicalEditor"
 import EmojiPicker from "@/components/emoji/EmojiPicker"
@@ -25,6 +25,7 @@ export function PostForm() {
     const [isUploading, setIsUploading] = useState(false)
     const [editorKey, setEditorKey] = useState(0)
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+    const [isBold, setIsBold] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const emojiButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -66,6 +67,16 @@ export function PostForm() {
         })
         window.dispatchEvent(event)
         setShowEmojiPicker(false)
+    }
+
+    const handleBoldFormat = () => {
+        // 触发编辑器加粗格式事件
+        const event = new Event('formatBold')
+        window.dispatchEvent(event)
+    }
+
+    const handleFormatChange = (formats: { isBold: boolean }) => {
+        setIsBold(formats.isBold)
     }
 
     const handleImageUpload = async (files: FileList) => {
@@ -137,6 +148,8 @@ export function PostForm() {
                                 key={editorKey}
                                 placeholder="有什么新鲜事？"
                                 onChange={handleEditorChange}
+                                onFormatChange={handleFormatChange}
+                                showToolbar={false}
                                 onSubmit={() => {
                                     // 模拟表单提交事件
                                     const form = document.querySelector('form')
@@ -187,6 +200,16 @@ export function PostForm() {
 
                             <div className="flex items-center justify-between mt-4">
                                 <div className="flex items-center space-x-4">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleBoldFormat}
+                                        className={`text-blue-500 hover:text-blue-600 ${isBold ? 'bg-blue-100' : ''}`}
+                                    >
+                                        <Bold className="w-5 h-5" />
+                                    </Button>
+
                                     <input
                                         ref={fileInputRef}
                                         type="file"
