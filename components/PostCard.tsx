@@ -28,6 +28,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { debugPosts, logError } from '@/lib/debug'
 
 interface PostCardProps {
     post: PostWithDetails
@@ -62,12 +63,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         if (userId) {
             const userHasLiked = post.likes.some(like => like.userId === userId)
             setIsLiked(userHasLiked)
-            console.log('重新计算点赞状态:', {
-                postId: post.id,
-                userId: userId,
-                userHasLiked: userHasLiked,
-                likesArray: post.likes
-            })
+            debugPosts('重新计算点赞状态: postId=%s, userId=%s, userHasLiked=%s', post.id, userId, userHasLiked)
         }
     }, [userId, post.likes, post.id])
 
@@ -92,7 +88,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             setLikeCount(prev => result.liked ? prev + 1 : prev - 1)
 
         } catch (error) {
-            console.error('Like error:', error)
+            logError('PostCard', error, 'Like operation failed')
             toast.error(error instanceof Error ? error.message : '点赞失败，请重试')
         } finally {
             setIsLiking(false)
@@ -121,7 +117,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             }
 
         } catch (error) {
-            console.error('Delete error:', error)
+            logError('PostCard', error, 'Delete operation failed')
             toast.error(error instanceof Error ? error.message : '删除失败，请重试')
         } finally {
             setIsDeleting(false)
@@ -177,7 +173,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             }
 
         } catch (error) {
-            console.error('Update error:', error)
+            logError('PostCard', error, 'Update operation failed')
             toast.error(error instanceof Error ? error.message : '更新失败，请重试')
         } finally {
             setIsUpdating(false)
@@ -219,7 +215,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             setEditedImages(prev => [...prev, ...data.urls])
             toast.success('图片上传成功')
         } catch (error) {
-            console.error('Image upload error:', error)
+            logError('PostCard', error, 'Image upload failed during edit')
             toast.error(error instanceof Error ? error.message : '图片上传失败')
         } finally {
             setIsUploadingInEdit(false)

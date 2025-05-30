@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { PostCard } from "@/components/PostCard"
 import type { PostWithDetails } from "@/lib/types"
+import { logError } from '@/lib/debug'
 
 export function PostList() {
     const [posts, setPosts] = useState<PostWithDetails[]>([])
@@ -18,7 +19,7 @@ export function PostList() {
                     setPosts(data)
                 }
             } catch (error) {
-                console.error('Failed to fetch posts:', error)
+                logError('PostList', error, 'Failed to fetch posts')
             } finally {
                 setLoading(false)
             }

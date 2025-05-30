@@ -20,6 +20,7 @@ import {
     $insertNodes
 } from 'lexical'
 import type { Emoji } from '@/lib/emoji/data'
+import { debugEditor, logError } from '@/lib/debug'
 
 // 编辑器主题
 const editorTheme = {
@@ -268,7 +269,11 @@ export default function LexicalEditor({
         namespace: 'TimeDiscussEditor',
         theme: editorTheme,
         onError: (error: Error) => {
-            console.error('Lexical Editor Error:', error)
+            debugEditor('Lexical Editor Error: %O', error)
+            // 只在严重错误时显示在 console
+            if (error.name === 'Invariant' || error.message.includes('Critical')) {
+                logError('LexicalEditor', error, 'Critical error')
+            }
         },
         nodes: [AutoLinkNode, LinkNode],
         editorState: initialValue || null,
@@ -280,11 +285,14 @@ export default function LexicalEditor({
             // 简化的 HTML 生成 - 暂时使用文本内容
             const text = JSON.stringify(json)
 
+            debugEditor('Editor state changed: %O', { hasContent: text.length > 50 })
+
             if (onChange) {
                 onChange(json as unknown as Record<string, unknown>, text)
             }
         } catch (error) {
-            console.error('Error handling editor change:', error)
+            debugEditor('Error handling editor change: %O', error)
+            logError('LexicalEditor', error, 'Failed to handle editor change')
         }
     }
 

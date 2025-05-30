@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Camera, Loader2 } from 'lucide-react';
 import { updateUserProfile } from '../app/actions/user';
 import { toast } from 'sonner';
+import { logError } from '@/lib/debug';
 
 interface User {
     id: string;
@@ -71,8 +72,8 @@ export default function ProfileForm({ user }: ProfileFormProps) {
             setAvatarUrl(data.url);
             toast.success('头像上传成功');
         } catch (error) {
-            console.error('Avatar upload error:', error);
-            toast.error('头像上传失败，请重试');
+            logError('ProfileForm', error, 'Avatar upload failed');
+            toast.error(error instanceof Error ? error.message : '头像上传失败');
         } finally {
             setIsUploading(false);
         }
@@ -97,8 +98,8 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 toast.error(result.error || '更新失败，请重试');
             }
         } catch (error) {
-            console.error('Profile update error:', error);
-            toast.error('更新失败，请重试');
+            logError('ProfileForm', error, 'Profile update failed');
+            toast.error(error instanceof Error ? error.message : '更新失败，请重试');
         } finally {
             setIsSubmitting(false);
         }

@@ -13,6 +13,7 @@ import LexicalEditor from "./editor/LexicalEditor"
 import EmojiPicker from "@/components/emoji/EmojiPicker"
 import type { Emoji } from "@/lib/emoji/data"
 import type { PostWithDetails } from "@/lib/types"
+import { logError } from '@/lib/debug'
 
 interface PostFormProps {
     onPostCreated?: (newPost: PostWithDetails) => void
@@ -56,9 +57,8 @@ export function PostForm({ onPostCreated }: PostFormProps) {
                 onPostCreated(newPost as PostWithDetails)
             }
         } catch (err) {
-            console.error("Failed to create post:", err)
-            const errorMessage = err instanceof Error ? err.message : "发布失败，请稍后重试"
-            toast.error(errorMessage)
+            logError('PostForm', err, 'Failed to create post')
+            toast.error(err instanceof Error ? err.message : '发布失败，请重试')
         } finally {
             setIsSubmitting(false)
         }
@@ -118,7 +118,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
             setUploadedImages(prev => [...prev, ...data.urls])
             toast.success('图片上传成功')
         } catch (error) {
-            console.error('Image upload error:', error)
+            logError('PostForm', error, 'Image upload failed')
             toast.error(error instanceof Error ? error.message : '图片上传失败')
         } finally {
             setIsUploading(false)

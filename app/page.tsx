@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User } from "lucide-react"
 import type { PostWithDetails } from "@/lib/types"
+import { debugAPI, debugAuth, logError } from '@/lib/debug'
 
 interface UserProfile {
   id: string
@@ -45,32 +46,29 @@ export default function Home() {
     const fetchUser = async () => {
       if (!session) return
 
-      console.log('开始获取用户信息...') // 调试日志
+      debugAuth('开始获取用户信息...')
 
       try {
         const response = await fetch(`/api/users/profile`)
-        console.log('API 响应状态:', response.status) // 调试日志
-        console.log('API 响应头:', response.headers) // 调试日志
+        debugAPI('用户信息 API 响应状态: %d', response.status)
 
         if (response.ok) {
           const userData = await response.json()
-          console.log('获取到的用户数据:', userData) // 调试日志
+          debugAuth('获取到的用户数据: %O', userData)
           setUser(userData)
         } else {
           // 改进错误处理
           const responseText = await response.text()
-          console.error('API 错误状态:', response.status)
-          console.error('API 错误文本:', responseText)
 
           try {
             const errorData = JSON.parse(responseText)
-            console.error('API 错误数据:', errorData)
-          } catch (parseError) {
-            console.error('无法解析错误响应为 JSON:', parseError)
+            logError('HomePage', errorData, `API error (${response.status})`)
+          } catch {
+            logError('HomePage', responseText, `API error (${response.status})`)
           }
         }
       } catch (error) {
-        console.error('网络或其他错误:', error)
+        logError('HomePage', error, 'Failed to fetch user data')
       }
     }
 
@@ -89,7 +87,7 @@ export default function Home() {
           setPosts(data)
         }
       } catch (error) {
-        console.error('Failed to fetch posts:', error)
+        logError('HomePage', error, 'Failed to fetch posts')
       } finally {
         setPostsLoading(false)
       }
