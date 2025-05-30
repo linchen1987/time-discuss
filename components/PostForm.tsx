@@ -7,9 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { createPost } from "@/app/actions/posts"
 import { toast } from "sonner"
-import { ImagePlus, X, Loader2 } from "lucide-react"
+import { ImagePlus, X, Loader2, Smile } from "lucide-react"
 import Image from "next/image"
 import LexicalEditor from "./editor/LexicalEditor"
+import EmojiPicker from "@/components/emoji/EmojiPicker"
+import type { Emoji } from "@/lib/emoji/data"
 
 export function PostForm() {
     const { data: session } = useSession()
@@ -22,7 +24,9 @@ export function PostForm() {
     const [uploadedImages, setUploadedImages] = useState<string[]>([])
     const [isUploading, setIsUploading] = useState(false)
     const [editorKey, setEditorKey] = useState(0)
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const emojiButtonRef = useRef<HTMLButtonElement>(null)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -39,6 +43,7 @@ export function PostForm() {
             setContentHtml("")
             setUploadedImages([])
             setEditorKey(prev => prev + 1)
+            setShowEmojiPicker(false)
             toast.success("发布成功！")
         } catch (err) {
             console.error("Failed to create post:", err)
@@ -52,6 +57,15 @@ export function PostForm() {
     const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {
         setEditorState(editorState)
         setContentHtml(html)
+    }
+
+    const handleEmojiSelect = (emoji: Emoji) => {
+        // 触发编辑器插入表情的事件
+        const event = new CustomEvent('insertEmoji', {
+            detail: { emoji }
+        })
+        window.dispatchEvent(event)
+        setShowEmojiPicker(false)
     }
 
     const handleImageUpload = async (files: FileList) => {
@@ -195,6 +209,18 @@ export function PostForm() {
                                             <ImagePlus className="w-5 h-5" />
                                         )}
                                     </Button>
+
+                                    <Button
+                                        ref={emojiButtonRef}
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                        className="text-blue-500 hover:text-blue-600"
+                                    >
+                                        <Smile className="w-5 h-5" />
+                                    </Button>
+
                                     <div className="text-sm text-muted-foreground">
                                         {uploadedImages.length > 0 && `${uploadedImages.length}/9 图片`}
                                     </div>
@@ -212,6 +238,21 @@ export function PostForm() {
                     </div>
                 </div>
             </div>
+
+            {/* 表情包选择器 */}
+            {showEmojiPicker && (
+                <EmojiPicker
+                    onSelect={handleEmojiSelect}
+                    onClose={() => setShowEmojiPicker(false)}
+                    position={
+                        emojiButtonRef.current ? {
+                            x: emojiButtonRef.current.getBoundingClientRect().left,
+                            y: emojiButtonRef.current.getBoundingClientRect().bottom + 8
+                        } : undefined
+                    }
+                />
+            )}
+
             <Separator />
         </div>
     )

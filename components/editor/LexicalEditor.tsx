@@ -15,8 +15,11 @@ import {
     $isRangeSelection,
     EditorState,
     KEY_ENTER_COMMAND,
-    COMMAND_PRIORITY_HIGH
+    COMMAND_PRIORITY_HIGH,
+    $createTextNode,
+    $insertNodes
 } from 'lexical'
+import type { Emoji } from '@/lib/emoji/data'
 
 // 编辑器主题
 const editorTheme = {
@@ -40,6 +43,35 @@ const HTTP_URL_MATCHER = createLinkMatcherWithRegExp(HTTP_URL_REGEX, (text) => {
 const WWW_URL_MATCHER = createLinkMatcherWithRegExp(WWW_URL_REGEX, (text) => {
     return `https://${text}`
 })
+
+// 表情插入插件
+function EmojiInsertPlugin() {
+    const [editor] = useLexicalComposerContext()
+
+    useEffect(() => {
+        const handleInsertEmoji = (event: CustomEvent) => {
+            const emoji = event.detail.emoji as Emoji
+            if (!emoji) return
+
+            editor.update(() => {
+                const selection = $getSelection()
+                if ($isRangeSelection(selection)) {
+                    const textNode = $createTextNode(emoji.unicode)
+                    $insertNodes([textNode])
+                }
+            })
+        }
+
+        // 监听全局表情插入事件
+        window.addEventListener('insertEmoji', handleInsertEmoji as EventListener)
+
+        return () => {
+            window.removeEventListener('insertEmoji', handleInsertEmoji as EventListener)
+        }
+    }, [editor])
+
+    return null
+}
 
 // 剪贴板插件 - 支持粘贴图片
 function ClipboardPlugin({ onImagePaste }: { onImagePaste?: (files: File[]) => void }) {
@@ -235,6 +267,7 @@ export default function LexicalEditor({
                     <HistoryPlugin />
                     <KeyboardPlugin onSubmit={onSubmit} />
                     <ClipboardPlugin onImagePaste={onImagePaste} />
+                    <EmojiInsertPlugin />
                     <IMEFriendlyAutoLinkPlugin />
                 </div>
             </LexicalComposer>
