@@ -4,12 +4,28 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle, MoreHorizontal } from "lucide-react"
+import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import Image from "next/image"
 import { toast } from "sonner"
 import LexicalRenderer from "./LexicalRenderer"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface PostCardProps {
     post: {
@@ -41,15 +57,21 @@ interface PostCardProps {
             }
         }>
     }
+    onPostDeleted?: (postId: string) => void
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, onPostDeleted }: PostCardProps) {
     const { data: session } = useSession()
     const userId = session?.user ? (session.user as { id: string }).id : undefined
 
     const [isLiked, setIsLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(post._count.likes)
     const [isLiking, setIsLiking] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+    // 检查当前用户是否是帖子作者
+    const isAuthor = userId === post.author.id
 
     // 当 userId 可用时，重新计算点赞状态
     useEffect(() => {
@@ -91,6 +113,40 @@ export function PostCard({ post }: PostCardProps) {
         } finally {
             setIsLiking(false)
         }
+    }
+
+    const handleDelete = async () => {
+        if (!session || isDeleting) return
+
+        setIsDeleting(true)
+        try {
+            const response = await fetch(`/api/posts/${post.id}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || '删除失败')
+            }
+
+            toast.success('帖子已删除')
+
+            // 通知父组件更新列表
+            if (onPostDeleted) {
+                onPostDeleted(post.id)
+            }
+
+        } catch (error) {
+            console.error('Delete error:', error)
+            toast.error(error instanceof Error ? error.message : '删除失败，请重试')
+        } finally {
+            setIsDeleting(false)
+            setShowDeleteDialog(false)
+        }
+    }
+
+    const handleDeleteClick = () => {
+        setShowDeleteDialog(true)
     }
 
     // 根据图片数量决定布局
@@ -139,11 +195,31 @@ export function PostCard({ post }: PostCardProps) {
                                     locale: zhCN
                                 })}
                             </span>
-                            <div className="ml-auto">
-                                <Button variant="ghost" size="sm">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            {isAuthor && (
+                                <div className="ml-auto">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem disabled>
+                                                <Edit className="h-4 w-4 mr-2" />
+                                                编辑
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                variant="destructive"
+                                                onClick={handleDeleteClick}
+                                                disabled={isDeleting}
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                {isDeleting ? '删除中...' : '删除'}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-2">
@@ -203,6 +279,27 @@ export function PostCard({ post }: PostCardProps) {
                     </div>
                 </div>
             </div>
+
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>确认删除帖子</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            确定要删除这篇帖子吗？此操作无法撤销，帖子的所有内容、图片、评论和点赞都将被永久删除。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                        >
+                            {isDeleting ? '删除中...' : '确认删除'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 } 

@@ -1,8 +1,44 @@
-import { getPosts } from "@/lib/db-utils"
-import { PostCard } from "@/components/PostCard"
+"use client"
 
-export async function PostList() {
-    const posts = await getPosts()
+import { useState, useEffect } from "react"
+import { PostCard } from "@/components/PostCard"
+import type { PostWithDetails } from "@/lib/types"
+
+export function PostList() {
+    const [posts, setPosts] = useState<PostWithDetails[]>([])
+    const [loading, setLoading] = useState(true)
+
+    // 获取帖子列表
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await fetch('/api/posts')
+                if (response.ok) {
+                    const data = await response.json()
+                    setPosts(data)
+                }
+            } catch (error) {
+                console.error('Failed to fetch posts:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchPosts()
+    }, [])
+
+    // 处理帖子删除
+    const handlePostDeleted = (postId: string) => {
+        setPosts(prev => prev.filter(post => post.id !== postId))
+    }
+
+    if (loading) {
+        return (
+            <div className="p-8 text-center text-muted-foreground">
+                <p>加载中...</p>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -13,7 +49,11 @@ export async function PostList() {
                 </div>
             ) : (
                 posts.map((post) => (
-                    <PostCard key={post.id} post={post} />
+                    <PostCard
+                        key={post.id}
+                        post={post}
+                        onPostDeleted={handlePostDeleted}
+                    />
                 ))
             )}
         </div>
