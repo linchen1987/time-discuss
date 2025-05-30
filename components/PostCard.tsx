@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, X, ImagePlus, Loader2 } from "lucide-react"
+import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
-import Image from "next/image"
 import { toast } from "sonner"
 import LexicalRenderer from "./LexicalRenderer"
-import LexicalEditor from "./editor/LexicalEditor"
+import { RichTextEditor } from "./editor/RichTextEditor"
+import { ImagePreview } from "@/components/ui/ImagePreview"
 import type { PostWithDetails } from "@/lib/types"
 import {
     DropdownMenu,
@@ -50,13 +50,9 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
     const [editedLexicalState, setEditedLexicalState] = useState<Record<string, unknown> | null>(post.lexicalState)
     const [editedContentHtml, setEditedContentHtml] = useState(post.contentHtml || "")
     const [editedImages, setEditedImages] = useState<string[]>(post.images.map(img => img.url) || [])
-    const [isUploadingInEdit, setIsUploadingInEdit] = useState(false)
 
     // 检查当前用户是否是帖子作者
     const isAuthor = userId === post.author.id
-
-    // 文件输入引用
-    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // 当 userId 可用时，重新计算点赞状态
     useEffect(() => {
@@ -185,75 +181,6 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         setEditedContentHtml(html)
     }
 
-    const handleImageUpload = async (files: FileList) => {
-        if (files.length === 0) return
-
-        const fileArray = Array.from(files)
-        if (editedImages.length + fileArray.length > 9) {
-            toast.error('最多上传9张图片')
-            return
-        }
-
-        setIsUploadingInEdit(true)
-        try {
-            const formData = new FormData()
-            fileArray.forEach(file => {
-                formData.append('files', file)
-            })
-
-            const response = await fetch('/api/uploads/post-images', {
-                method: 'POST',
-                body: formData,
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || '上传失败')
-            }
-
-            const data = await response.json()
-            setEditedImages(prev => [...prev, ...data.urls])
-            toast.success('图片上传成功')
-        } catch (error) {
-            logError('PostCard', error, 'Image upload failed during edit')
-            toast.error(error instanceof Error ? error.message : '图片上传失败')
-        } finally {
-            setIsUploadingInEdit(false)
-        }
-    }
-
-    const removeEditImage = (index: number) => {
-        setEditedImages(prev => prev.filter((_, i) => i !== index))
-    }
-
-    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files
-        if (files) {
-            handleImageUpload(files)
-        }
-        e.target.value = ''
-    }
-
-    // 根据图片数量决定布局
-    const getImageLayout = (imageCount: number) => {
-        if (imageCount === 1) return "grid-cols-1"
-        if (imageCount === 2) return "grid-cols-2"
-        if (imageCount === 3) return "grid-cols-2"
-        if (imageCount === 4) return "grid-cols-2"
-        return "grid-cols-3"
-    }
-
-    const getImageHeight = (imageCount: number, index: number) => {
-        if (imageCount === 1) return "h-64"
-        if (imageCount === 3 && index === 0) return "h-64"
-        return "h-32"
-    }
-
-    const getImageSpan = (imageCount: number, index: number) => {
-        if (imageCount === 3 && index === 0) return "col-span-2"
-        return ""
-    }
-
     return (
         <div className="border-b border-border hover:bg-muted/50 transition-colors">
             <div className="p-4">
@@ -310,95 +237,32 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                         <div className="mt-2">
                             {isEditing ? (
                                 <div>
-                                    <LexicalEditor
+                                    <RichTextEditor
                                         placeholder="编辑帖子内容..."
                                         onChange={handleEditorChange}
                                         initialValue={editedContentHtml}
-                                        showToolbar={false}
+                                        initialImages={editedImages}
+                                        onImagesChange={setEditedImages}
+                                        showToolbar={true}
+                                        showSubmit={false}
                                         className="border-none shadow-none min-h-[100px]"
-                                        onSubmit={handleSaveEdit}
-                                        onImagePaste={(files) => {
-                                            // 将 File[] 转换为 FileList
-                                            const fileList = {
-                                                length: files.length,
-                                                item: (index: number) => files[index] || null,
-                                                [Symbol.iterator]: function* () {
-                                                    for (let i = 0; i < files.length; i++) {
-                                                        yield files[i]
-                                                    }
-                                                }
-                                            } as FileList
-                                            handleImageUpload(fileList)
-                                        }}
                                     />
 
-                                    {/* 编辑模式的图片预览 */}
-                                    {editedImages.length > 0 && (
-                                        <div className="mt-3 grid grid-cols-2 gap-2">
-                                            {editedImages.map((url, index) => (
-                                                <div key={index} className="relative group">
-                                                    <Image
-                                                        src={url}
-                                                        alt={`编辑图片 ${index + 1}`}
-                                                        width={200}
-                                                        height={200}
-                                                        className="w-full h-32 object-cover rounded-lg"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeEditImage(index)}
-                                                        className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* 编辑模式的工具栏 */}
-                                    <div className="flex items-center justify-between mt-3 p-2 border-t">
-                                        <div className="flex items-center space-x-2">
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                multiple
-                                                onChange={handleFileInputChange}
-                                                className="hidden"
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                disabled={editedImages.length >= 9 || isUploadingInEdit}
-                                                className="text-blue-500 hover:text-blue-600"
-                                            >
-                                                {isUploadingInEdit ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <ImagePlus className="w-4 h-4" />
-                                                )}
-                                            </Button>
-                                            <span className="text-xs text-muted-foreground">
-                                                {editedImages.length}/9 图片
-                                            </span>
-                                        </div>
-
+                                    {/* 编辑模式的控制栏 */}
+                                    <div className="flex items-center justify-end mt-3 p-2 border-t">
                                         <div className="flex items-center space-x-2">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={handleCancelEdit}
-                                                disabled={isUpdating || isUploadingInEdit}
+                                                disabled={isUpdating}
                                             >
                                                 取消
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 onClick={handleSaveEdit}
-                                                disabled={isUpdating || isUploadingInEdit || (!editedLexicalState && editedImages.length === 0)}
+                                                disabled={isUpdating || (!editedLexicalState && editedImages.length === 0)}
                                             >
                                                 {isUpdating ? (
                                                     <>
@@ -421,28 +285,12 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                                     />
 
                                     {/* 图片展示区域 */}
-                                    {post.images.length > 0 && (
-                                        <div className={`mt-3 grid gap-2 ${getImageLayout(post.images.length)}`}>
-                                            {post.images.map((image, index) => (
-                                                <div
-                                                    key={image.id}
-                                                    className={`relative overflow-hidden rounded-lg ${getImageSpan(post.images.length, index)}`}
-                                                >
-                                                    <Image
-                                                        src={image.url}
-                                                        alt={image.altText || `图片 ${index + 1}`}
-                                                        width={400}
-                                                        height={300}
-                                                        className={`w-full object-cover cursor-pointer hover:opacity-90 transition-opacity ${getImageHeight(post.images.length, index)}`}
-                                                        onClick={() => {
-                                                            // TODO: 实现图片预览功能
-                                                            window.open(image.url, '_blank')
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <ImagePreview
+                                        images={post.images.map(img => img.url)}
+                                        showRemoveButton={false}
+                                        onClick={(url) => window.open(url, '_blank')}
+                                        className="mt-3"
+                                    />
                                 </>
                             )}
                         </div>

@@ -304,12 +304,12 @@ export default function LexicalEditor({
                     <RichTextPlugin
                         contentEditable={
                             <ContentEditable
-                                className="min-h-[120px] p-1 text-base leading-relaxed focus:outline-none resize-none text-foreground"
+                                className="min-h-[120px] p-1 pl-2 text-base leading-relaxed focus:outline-none resize-none text-foreground"
                                 spellCheck={false}
                             />
                         }
                         placeholder={
-                            <div className="absolute top-1 left-2 text-muted-foreground pointer-events-none select-none">
+                            <div className="absolute top-1 left-2 pl-1 text-muted-foreground pointer-events-none select-none">
                                 {placeholder}
                             </div>
                         }
