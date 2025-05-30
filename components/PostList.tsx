@@ -32,6 +32,13 @@ export function PostList() {
         setPosts(prev => prev.filter(post => post.id !== postId))
     }
 
+    // 处理帖子更新
+    const handlePostUpdated = (updatedPost: PostWithDetails) => {
+        setPosts(prev => prev.map(post =>
+            post.id === updatedPost.id ? updatedPost : post
+        ))
+    }
+
     if (loading) {
         return (
             <div className="p-8 text-center text-muted-foreground">
@@ -53,6 +60,7 @@ export function PostList() {
                         key={post.id}
                         post={post}
                         onPostDeleted={handlePostDeleted}
+                        onPostUpdated={handlePostUpdated}
                     />
                 ))
             )}

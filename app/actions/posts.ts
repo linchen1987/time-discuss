@@ -54,10 +54,10 @@ export async function createPost(lexicalState: Record<string, unknown> | null, c
   };
 
   // 创建帖子
-  await prisma.post.create({
+  const newPost = await prisma.post.create({
     data: {
       authorId: user.id,
-      lexicalState: finalLexicalState as Prisma.JsonValue,
+      lexicalState: finalLexicalState as any,
       contentHtml: contentHtml,
       images:
         imageUrls && imageUrls.length > 0
@@ -69,9 +69,58 @@ export async function createPost(lexicalState: Record<string, unknown> | null, c
             }
           : undefined,
     },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarUrl: true,
+        },
+      },
+      images: {
+        select: {
+          id: true,
+          url: true,
+          altText: true,
+        },
+      },
+      comments: {
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      },
+      likes: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          likes: true,
+        },
+      },
+    },
   });
 
   revalidatePath('/');
+  return newPost;
 }
 
 export async function deletePost(postId: string) {

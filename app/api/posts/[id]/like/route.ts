@@ -4,9 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { likeOperations } from '@/lib/db-utils';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 interface SessionWithUser {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: '请先登录' }, { status: 401 });
     }
 
-    const { id: postId } = params;
+    const { id: postId } = await params;
 
     if (!postId) {
       return NextResponse.json({ error: '帖子ID无效' }, { status: 400 });

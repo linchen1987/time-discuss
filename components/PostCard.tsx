@@ -11,6 +11,7 @@ import Image from "next/image"
 import { toast } from "sonner"
 import LexicalRenderer from "./LexicalRenderer"
 import LexicalEditor from "./editor/LexicalEditor"
+import type { PostWithDetails } from "@/lib/types"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -29,39 +30,12 @@ import {
 } from "@/components/ui/alert-dialog"
 
 interface PostCardProps {
-    post: {
-        id: string
-        lexicalState: Record<string, unknown> | null
-        contentHtml: string | null
-        createdAt: Date
-        author: {
-            id: string
-            name: string | null
-            avatarUrl: string | null
-        }
-        images?: Array<{
-            id: string
-            url: string
-            altText: string | null
-        }>
-        _count: {
-            likes: number
-            comments: number
-        }
-        likes: Array<{
-            id: string
-            userId: string
-            user: {
-                id: string
-                name: string | null
-                username: string | null
-            }
-        }>
-    }
+    post: PostWithDetails
     onPostDeleted?: (postId: string) => void
+    onPostUpdated?: (updatedPost: PostWithDetails) => void
 }
 
-export function PostCard({ post, onPostDeleted }: PostCardProps) {
+export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) {
     const { data: session } = useSession()
     const userId = session?.user ? (session.user as { id: string }).id : undefined
 
@@ -74,7 +48,8 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const [editedLexicalState, setEditedLexicalState] = useState<Record<string, unknown> | null>(post.lexicalState)
     const [editedContentHtml, setEditedContentHtml] = useState(post.contentHtml || "")
-    const [editedImages, setEditedImages] = useState<string[]>(post.images?.map(img => img.url) || [])
+    const [editedImages, setEditedImages] = useState<string[]>(post.images.map(img => img.url) || [])
+    const [isUploadingInEdit, setIsUploadingInEdit] = useState(false)
 
     // 检查当前用户是否是帖子作者
     const isAuthor = userId === post.author.id
@@ -166,7 +141,7 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
         setIsEditing(false)
         setEditedLexicalState(post.lexicalState)
         setEditedContentHtml(post.contentHtml || "")
-        setEditedImages(post.images?.map(img => img.url) || [])
+        setEditedImages(post.images.map(img => img.url) || [])
     }
 
     const handleSaveEdit = async () => {
@@ -192,11 +167,14 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
                 throw new Error(errorData.error || '更新失败')
             }
 
+            const result = await response.json()
             toast.success('帖子已更新')
             setIsEditing(false)
 
-            // 刷新页面以更新帖子内容
-            window.location.reload()
+            // 使用回调更新父组件的数据，而不是刷新页面
+            if (onPostUpdated && result.post) {
+                onPostUpdated(result.post)
+            }
 
         } catch (error) {
             console.error('Update error:', error)
@@ -220,6 +198,7 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
             return
         }
 
+        setIsUploadingInEdit(true)
         try {
             const formData = new FormData()
             fileArray.forEach(file => {
@@ -242,6 +221,8 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
         } catch (error) {
             console.error('Image upload error:', error)
             toast.error(error instanceof Error ? error.message : '图片上传失败')
+        } finally {
+            setIsUploadingInEdit(false)
         }
     }
 
@@ -339,6 +320,20 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
                                         initialValue={editedContentHtml}
                                         showToolbar={false}
                                         className="border-none shadow-none min-h-[100px]"
+                                        onSubmit={handleSaveEdit}
+                                        onImagePaste={(files) => {
+                                            // 将 File[] 转换为 FileList
+                                            const fileList = {
+                                                length: files.length,
+                                                item: (index: number) => files[index] || null,
+                                                [Symbol.iterator]: function* () {
+                                                    for (let i = 0; i < files.length; i++) {
+                                                        yield files[i]
+                                                    }
+                                                }
+                                            } as FileList
+                                            handleImageUpload(fileList)
+                                        }}
                                     />
 
                                     {/* 编辑模式的图片预览 */}
@@ -381,10 +376,14 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => fileInputRef.current?.click()}
-                                                disabled={editedImages.length >= 9}
+                                                disabled={editedImages.length >= 9 || isUploadingInEdit}
                                                 className="text-blue-500 hover:text-blue-600"
                                             >
-                                                <ImagePlus className="w-4 h-4" />
+                                                {isUploadingInEdit ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <ImagePlus className="w-4 h-4" />
+                                                )}
                                             </Button>
                                             <span className="text-xs text-muted-foreground">
                                                 {editedImages.length}/9 图片
@@ -396,14 +395,14 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={handleCancelEdit}
-                                                disabled={isUpdating}
+                                                disabled={isUpdating || isUploadingInEdit}
                                             >
                                                 取消
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 onClick={handleSaveEdit}
-                                                disabled={isUpdating || (!editedLexicalState && editedImages.length === 0)}
+                                                disabled={isUpdating || isUploadingInEdit || (!editedLexicalState && editedImages.length === 0)}
                                             >
                                                 {isUpdating ? (
                                                     <>
@@ -426,19 +425,19 @@ export function PostCard({ post, onPostDeleted }: PostCardProps) {
                                     />
 
                                     {/* 图片展示区域 */}
-                                    {post.images && post.images.length > 0 && (
+                                    {post.images.length > 0 && (
                                         <div className={`mt-3 grid gap-2 ${getImageLayout(post.images.length)}`}>
                                             {post.images.map((image, index) => (
                                                 <div
                                                     key={image.id}
-                                                    className={`relative overflow-hidden rounded-lg ${getImageSpan(post.images!.length, index)}`}
+                                                    className={`relative overflow-hidden rounded-lg ${getImageSpan(post.images.length, index)}`}
                                                 >
                                                     <Image
                                                         src={image.url}
                                                         alt={image.altText || `图片 ${index + 1}`}
                                                         width={400}
                                                         height={300}
-                                                        className={`w-full object-cover cursor-pointer hover:opacity-90 transition-opacity ${getImageHeight(post.images!.length, index)}`}
+                                                        className={`w-full object-cover cursor-pointer hover:opacity-90 transition-opacity ${getImageHeight(post.images.length, index)}`}
                                                         onClick={() => {
                                                             // TODO: 实现图片预览功能
                                                             window.open(image.url, '_blank')

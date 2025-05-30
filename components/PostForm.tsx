@@ -12,8 +12,13 @@ import Image from "next/image"
 import LexicalEditor from "./editor/LexicalEditor"
 import EmojiPicker from "@/components/emoji/EmojiPicker"
 import type { Emoji } from "@/lib/emoji/data"
+import type { PostWithDetails } from "@/lib/types"
 
-export function PostForm() {
+interface PostFormProps {
+    onPostCreated?: (newPost: PostWithDetails) => void
+}
+
+export function PostForm({ onPostCreated }: PostFormProps) {
     const { data: session } = useSession()
     type UserWithAvatar = { avatarUrl?: string | null; name?: string | null };
     const user = session?.user as UserWithAvatar | undefined
@@ -37,7 +42,7 @@ export function PostForm() {
         setIsSubmitting(true)
         try {
             // 将编辑器状态传递给 createPost
-            await createPost(editorState, contentHtml, uploadedImages)
+            const newPost = await createPost(editorState, contentHtml, uploadedImages)
 
             // 重置编辑器状态
             setEditorState(null)
@@ -46,6 +51,10 @@ export function PostForm() {
             setEditorKey(prev => prev + 1)
             setShowEmojiPicker(false)
             toast.success("发布成功！")
+
+            if (onPostCreated && newPost) {
+                onPostCreated(newPost as PostWithDetails)
+            }
         } catch (err) {
             console.error("Failed to create post:", err)
             const errorMessage = err instanceof Error ? err.message : "发布失败，请稍后重试"
