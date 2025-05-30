@@ -3,33 +3,42 @@
 import { useState, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { createPost } from "@/app/actions/posts"
 import { toast } from "sonner"
 import { ImagePlus, X, Loader2 } from "lucide-react"
 import Image from "next/image"
+import LexicalEditor from "./editor/LexicalEditor"
 
 export function PostForm() {
     const { data: session } = useSession()
     type UserWithAvatar = { avatarUrl?: string | null; name?: string | null };
     const user = session?.user as UserWithAvatar | undefined
-    const [content, setContent] = useState("")
+
+    const [editorState, setEditorState] = useState<Record<string, unknown> | null>(null)
+    const [contentHtml, setContentHtml] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [uploadedImages, setUploadedImages] = useState<string[]>([])
     const [isUploading, setIsUploading] = useState(false)
+    const [editorKey, setEditorKey] = useState(0)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if ((!content.trim() && uploadedImages.length === 0) || isSubmitting) return
+        if ((!editorState || !contentHtml.trim()) && uploadedImages.length === 0) return
+        if (isSubmitting) return
 
         setIsSubmitting(true)
         try {
-            await createPost(content.trim(), uploadedImages)
-            setContent("")
+            // 将编辑器状态传递给 createPost
+            await createPost(editorState, contentHtml, uploadedImages)
+
+            // 重置编辑器状态
+            setEditorState(null)
+            setContentHtml("")
             setUploadedImages([])
+            setEditorKey(prev => prev + 1)
             toast.success("发布成功！")
         } catch (err) {
             console.error("Failed to create post:", err)
@@ -40,36 +49,9 @@ export function PostForm() {
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-            handleSubmit(e as unknown as React.FormEvent)
-        }
-    }
-
-    const handlePaste = async (e: React.ClipboardEvent) => {
-        const items = e.clipboardData?.items
-        if (!items) return
-
-        const imageFiles: File[] = []
-
-        // 检查剪贴板中的所有项目
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i]
-            if (item.type.startsWith('image/')) {
-                const file = item.getAsFile()
-                if (file) {
-                    imageFiles.push(file)
-                }
-            }
-        }
-
-        // 如果找到图片文件，阻止默认粘贴行为并上传图片
-        if (imageFiles.length > 0) {
-            e.preventDefault()
-            const fileList = new DataTransfer()
-            imageFiles.forEach(file => fileList.items.add(file))
-            await handleImageUpload(fileList.files)
-        }
+    const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {
+        setEditorState(editorState)
+        setContentHtml(html)
     }
 
     const handleImageUpload = async (files: FileList) => {
@@ -137,14 +119,32 @@ export function PostForm() {
 
                     <div className="flex-1">
                         <form onSubmit={handleSubmit}>
-                            <Textarea
+                            <LexicalEditor
+                                key={editorKey}
                                 placeholder="有什么新鲜事？"
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onPaste={handlePaste}
-                                className="min-h-[120px] resize-none border-none px-4 py-3 text-xl placeholder:text-muted-foreground focus-visible:ring-0"
-                                maxLength={280}
+                                onChange={handleEditorChange}
+                                onSubmit={() => {
+                                    // 模拟表单提交事件
+                                    const form = document.querySelector('form')
+                                    if (form) {
+                                        const event = new Event('submit', { cancelable: true, bubbles: true })
+                                        form.dispatchEvent(event)
+                                    }
+                                }}
+                                onImagePaste={(files) => {
+                                    // 将 File[] 转换为 FileList
+                                    const fileList = {
+                                        length: files.length,
+                                        item: (index: number) => files[index] || null,
+                                        [Symbol.iterator]: function* () {
+                                            for (let i = 0; i < files.length; i++) {
+                                                yield files[i]
+                                            }
+                                        }
+                                    } as FileList
+                                    handleImageUpload(fileList)
+                                }}
+                                className="border-none shadow-none"
                             />
 
                             {/* 图片预览区域 */}
@@ -196,14 +196,13 @@ export function PostForm() {
                                         )}
                                     </Button>
                                     <div className="text-sm text-muted-foreground">
-                                        {content.length}/280
-                                        {uploadedImages.length > 0 && ` • ${uploadedImages.length}/9 图片`}
+                                        {uploadedImages.length > 0 && `${uploadedImages.length}/9 图片`}
                                     </div>
                                 </div>
 
                                 <Button
                                     type="submit"
-                                    disabled={(!content.trim() && uploadedImages.length === 0) || isSubmitting}
+                                    disabled={(!editorState && uploadedImages.length === 0) || isSubmitting}
                                     className="rounded-full"
                                 >
                                     {isSubmitting ? "发布中..." : "发布"}

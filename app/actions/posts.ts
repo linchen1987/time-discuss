@@ -4,8 +4,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { Prisma } from '@prisma/client';
 
-export async function createPost(content: string, imageUrls?: string[]) {
+export async function createPost(lexicalState: Record<string, unknown> | null, contentHtml: string, imageUrls?: string[]) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -21,40 +22,43 @@ export async function createPost(content: string, imageUrls?: string[]) {
     throw new Error('用户不存在');
   }
 
-  // 创建帖子
-  await prisma.post.create({
-    data: {
-      authorId: user.id,
-      lexicalState: {
-        root: {
+  // 如果没有 lexicalState，创建一个简单的状态
+  const finalLexicalState = lexicalState || {
+    root: {
+      children: [
+        {
           children: [
             {
-              children: [
-                {
-                  detail: 0,
-                  format: 0,
-                  mode: 'normal',
-                  style: '',
-                  text: content,
-                  type: 'text',
-                  version: 1,
-                },
-              ],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              type: 'paragraph',
+              detail: 0,
+              format: 0,
+              mode: 'normal',
+              style: '',
+              text: contentHtml,
+              type: 'text',
               version: 1,
             },
           ],
           direction: 'ltr',
           format: '',
           indent: 0,
-          type: 'root',
+          type: 'paragraph',
           version: 1,
         },
-      },
-      contentHtml: content,
+      ],
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1,
+    },
+  };
+
+  // 创建帖子
+  await prisma.post.create({
+    data: {
+      authorId: user.id,
+      lexicalState: finalLexicalState as Prisma.JsonValue,
+      contentHtml: contentHtml,
       images:
         imageUrls && imageUrls.length > 0
           ? {

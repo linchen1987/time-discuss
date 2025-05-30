@@ -9,10 +9,12 @@ import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import Image from "next/image"
 import { toast } from "sonner"
+import LexicalRenderer from "./LexicalRenderer"
 
 interface PostCardProps {
     post: {
         id: string
+        lexicalState: Record<string, unknown> | null
         contentHtml: string | null
         createdAt: Date
         author: {
@@ -145,11 +147,11 @@ export function PostCard({ post }: PostCardProps) {
                         </div>
 
                         <div className="mt-2">
-                            {post.contentHtml && (
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {post.contentHtml}
-                                </p>
-                            )}
+                            <LexicalRenderer
+                                lexicalState={post.lexicalState}
+                                contentHtml={post.contentHtml}
+                                className="text-sm whitespace-pre-wrap"
+                            />
                         </div>
 
                         {/* 图片展示区域 */}
