@@ -105,7 +105,7 @@ export function ThemeToggle() {
             {/* 右边：三个主题选择按钮 */}
             <div className="flex items-center space-x-0.5">
                 <Button
-                    variant={theme === "light" ? "default" : "ghost"}
+                    variant={theme === "light" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-6 w-6 p-0"
                     onClick={() => setTheme("light")}
@@ -115,7 +115,7 @@ export function ThemeToggle() {
                 </Button>
 
                 <Button
-                    variant={theme === "dark" ? "default" : "ghost"}
+                    variant={theme === "dark" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-6 w-6 p-0"
                     onClick={() => setTheme("dark")}
@@ -125,7 +125,7 @@ export function ThemeToggle() {
                 </Button>
 
                 <Button
-                    variant={theme === "system" ? "default" : "ghost"}
+                    variant={theme === "system" ? "secondary" : "ghost"}
                     size="sm"
                     className="h-6 w-6 p-0"
                     onClick={() => setTheme("system")}
