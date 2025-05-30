@@ -150,6 +150,68 @@ export const postOperations = {
       where: { id: postId },
     });
   },
+
+  // 更新帖子
+  async update(
+    postId: string,
+    userId: string,
+    data: {
+      lexicalState: Record<string, unknown>;
+      contentHtml?: string;
+      images?: { url: string; altText?: string }[];
+    }
+  ) {
+    // 确保只有作者可以编辑自己的帖子
+    const post = await prisma.post.findFirst({
+      where: {
+        id: postId,
+        authorId: userId,
+      },
+    });
+
+    if (!post) {
+      throw new Error('Post not found or unauthorized');
+    }
+
+    // 如果有新图片，需要删除旧图片并创建新图片
+    if (data.images !== undefined) {
+      // 删除旧图片
+      await prisma.postImage.deleteMany({
+        where: { postId },
+      });
+    }
+
+    return await prisma.post.update({
+      where: { id: postId },
+      data: {
+        lexicalState: data.lexicalState as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        contentHtml: data.contentHtml,
+        updatedAt: new Date(),
+        images: data.images
+          ? {
+              create: data.images,
+            }
+          : undefined,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            altText: true,
+          },
+        },
+      },
+    });
+  },
 };
 
 // 评论相关操作
