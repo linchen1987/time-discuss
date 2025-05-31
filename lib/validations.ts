@@ -70,7 +70,6 @@ export const commentValidation = {
     contentHtml: z.string().optional(),
     content: z.string().min(1, '评论内容不能为空').max(1000, '评论内容最多1000个字符'),
     imageUrls: z.array(z.string().url()).optional().default([]),
-    parentId: z.string().optional(),
     replyToUserId: z.string().optional(),
   }),
 

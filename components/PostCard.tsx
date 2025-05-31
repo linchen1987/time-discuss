@@ -29,7 +29,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { debugPosts, logError } from '@/lib/debug'
+import { logError } from '@/lib/debug'
 
 interface PostCardProps {
     post: PostWithDetails
@@ -61,7 +61,6 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         if (userId) {
             const userHasLiked = post.likes.some(like => like.userId === userId)
             setIsLiked(userHasLiked)
-            debugPosts('重新计算点赞状态: postId=%s, userId=%s, userHasLiked=%s', post.id, userId, userHasLiked)
         }
     }, [userId, post.likes, post.id])
 

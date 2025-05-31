@@ -6,7 +6,24 @@ export async function GET() {
     const posts = await postOperations.getPostsWithDetails();
     return NextResponse.json(posts);
   } catch (error) {
-    console.error('Get posts error:', error);
-    return NextResponse.json({ error: '获取帖子失败' }, { status: 500 });
+    // 返回具体的错误信息而不是通用消息
+    if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          error: 'Database query failed',
+          message: error.message,
+          type: error.constructor.name,
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: 'Unknown error occurred',
+        message: String(error),
+      },
+      { status: 500 }
+    );
   }
 }

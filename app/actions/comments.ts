@@ -36,7 +36,6 @@ export async function createComment(
   lexicalState: Record<string, unknown> | null,
   contentHtml: string,
   imageUrls: string[] = [],
-  parentId?: string,
   replyToUserId?: string
 ): Promise<CommentWithDetails> {
   try {
@@ -50,7 +49,6 @@ export async function createComment(
       contentHtml,
       content,
       imageUrls,
-      parentId,
       replyToUserId,
     });
 
@@ -72,7 +70,6 @@ export async function createComment(
         lexicalState: validatedData.lexicalState as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         contentHtml: validatedData.contentHtml,
         content: validatedData.content,
-        parentId: validatedData.parentId,
         replyToUserId: validatedData.replyToUserId,
         images:
           validatedData.imageUrls && validatedData.imageUrls.length > 0
@@ -116,7 +113,6 @@ export async function createComment(
         _count: {
           select: {
             likes: true,
-            replies: true,
           },
         },
       },

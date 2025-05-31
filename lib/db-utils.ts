@@ -80,6 +80,13 @@ export const postOperations = {
                 avatarUrl: true,
               },
             },
+            replyToUser: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
           },
         },
         likes: {
@@ -144,6 +151,13 @@ export const postOperations = {
                 name: true,
                 username: true,
                 avatarUrl: true,
+              },
+            },
+            replyToUser: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
               },
             },
           },
@@ -256,6 +270,13 @@ export const postOperations = {
                 name: true,
                 username: true,
                 avatarUrl: true,
+              },
+            },
+            replyToUser: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
               },
             },
           },

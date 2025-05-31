@@ -12,7 +12,6 @@ import { logError } from '@/lib/debug'
 
 interface CommentFormProps {
     postId: string
-    parentId?: string // 回复时的父评论ID
     replyToUser?: {
         id: string
         name: string
@@ -25,7 +24,6 @@ interface CommentFormProps {
 
 export function CommentForm({
     postId,
-    parentId,
     replyToUser,
     onCommentCreated,
     onCancel,
@@ -43,7 +41,7 @@ export function CommentForm({
     const [editorKey, setEditorKey] = useState(0)
 
     // 根据是否是回复来确定模式
-    const editorMode = parentId ? 'reply' : 'comment'
+    const editorMode = replyToUser ? 'reply' : 'comment'
 
     // 如果是回复，在placeholder中显示被回复的用户
     const finalPlaceholder = replyToUser
@@ -71,7 +69,6 @@ export function CommentForm({
                 editorState,
                 contentHtml,
                 uploadedImages,
-                parentId,
                 replyToUser?.id
             )
 
@@ -81,14 +78,14 @@ export function CommentForm({
             setUploadedImages([])
             setEditorKey(prev => prev + 1)
 
-            toast.success(parentId ? "回复成功！" : "评论成功！")
+            toast.success("评论成功！")
 
             if (onCommentCreated) {
                 onCommentCreated(newComment)
             }
 
             // 如果是回复，自动取消回复模式
-            if (parentId && onCancel) {
+            if (replyToUser && onCancel) {
                 onCancel()
             }
 
@@ -112,7 +109,7 @@ export function CommentForm({
     if (!session) return null
 
     return (
-        <div className={`${compact ? 'p-2' : 'p-4'} ${parentId ? 'border-l-2 border-muted ml-4' : 'border-b border-border'}`}>
+        <div className={`${compact ? 'p-2' : 'p-4'} ${replyToUser ? 'border-l-2 border-muted ml-4' : 'border-b border-border'}`}>
             <div className="flex space-x-3">
                 <Avatar className={compact ? 'h-10 w-10' : 'h-10 w-10'}>
                     <AvatarImage src={user?.avatarUrl || ""} />
@@ -128,16 +125,16 @@ export function CommentForm({
                         onChange={handleEditorChange}
                         onImagesChange={handleImagesChange}
                         onSubmit={handleSubmit}
-                        submitText={parentId ? "回复" : "评论"}
+                        submitText="评论"
                         isSubmitting={isSubmitting}
                         mode={editorMode}
-                        maxHeight={parentId ? "120px" : "150px"}
-                        showImageUpload={!parentId} // 回复时不显示图片上传
+                        maxHeight={replyToUser ? "120px" : "150px"}
+                        showImageUpload={!replyToUser} // 回复时不显示图片上传
                         className="border-none shadow-none"
                     />
 
                     {/* 回复时显示取消按钮 */}
-                    {parentId && onCancel && (
+                    {replyToUser && onCancel && (
                         <div className="mt-2">
                             <Button
                                 variant="ghost"

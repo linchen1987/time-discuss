@@ -129,9 +129,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
           },
         },
         comments: {
-          where: {
-            parentId: null, // 只获取顶级评论
-          },
           include: {
             author: {
               select: {
@@ -161,56 +158,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
                 userId: true,
               },
             },
-            replies: {
-              include: {
-                author: {
-                  select: {
-                    id: true,
-                    name: true,
-                    username: true,
-                    avatarUrl: true,
-                  },
-                },
-                replyToUser: {
-                  select: {
-                    id: true,
-                    name: true,
-                    username: true,
-                  },
-                },
-                images: {
-                  select: {
-                    id: true,
-                    url: true,
-                    altText: true,
-                  },
-                },
-                likes: {
-                  select: {
-                    id: true,
-                    userId: true,
-                  },
-                },
-                _count: {
-                  select: {
-                    likes: true,
-                    replies: true,
-                  },
-                },
-              },
-              orderBy: {
-                createdAt: 'asc',
-              },
-            },
             _count: {
               select: {
                 likes: true,
-                replies: true,
               },
             },
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: 'asc', // 按时间正序排列，像聊天一样
           },
         },
         _count: {

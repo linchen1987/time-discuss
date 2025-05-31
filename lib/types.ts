@@ -39,6 +39,11 @@ export interface PostWithDetails {
       username: string | null;
       avatarUrl: string | null;
     };
+    replyToUser?: {
+      id: string;
+      name: string | null;
+      username: string | null;
+    } | null;
     createdAt: Date;
   }[];
   likes: {
@@ -116,7 +121,6 @@ export interface CommentWithDetails {
   lexicalState: Record<string, unknown> | null;
   contentHtml: string | null;
   content: string;
-  parentId: string | null;
   replyToUserId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -142,12 +146,10 @@ export interface CommentWithDetails {
     id: string;
     userId: string;
   }[];
-  replies?: CommentWithDetails[];
 
   // 计算字段
   _count: {
     likes: number;
-    replies: number;
   };
 }
 
@@ -156,6 +158,5 @@ export interface CommentFormData {
   contentHtml: string;
   content: string;
   imageUrls: string[];
-  parentId?: string;
   replyToUserId?: string;
 }

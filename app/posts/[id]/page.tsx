@@ -11,8 +11,7 @@ import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import LexicalRenderer from "@/components/LexicalRenderer"
 import { ImagePreview } from "@/components/ui/ImagePreview"
-import { CommentForm } from "@/components/comments/CommentForm"
-import { CommentItem } from "@/components/comments/CommentItem"
+import { CommentList } from "@/components/comments/CommentList"
 import type { PostWithDetails, CommentWithDetails } from "@/lib/types"
 import { logError } from '@/lib/debug'
 
@@ -63,39 +62,6 @@ export default function PostDetailsPage() {
         }
     }, [postId])
 
-    // 处理新评论创建
-    const handleCommentCreated = (newComment: CommentWithDetails) => {
-        setComments(prev => [newComment, ...prev])
-
-        // 更新帖子的评论数
-        if (post) {
-            setPost({
-                ...post,
-                _count: {
-                    ...post._count,
-                    comments: post._count.comments + 1
-                }
-            })
-        }
-    }
-
-    // 处理回复创建
-    const handleReplyCreated = (newReply: CommentWithDetails) => {
-        setComments(prev => prev.map(comment => {
-            if (comment.id === newReply.parentId) {
-                return {
-                    ...comment,
-                    replies: [...(comment.replies || []), newReply],
-                    _count: {
-                        ...comment._count,
-                        replies: comment._count.replies + 1
-                    }
-                }
-            }
-            return comment
-        }))
-    }
-
     if (loading) {
         return (
             <div className="min-h-screen bg-background">
@@ -143,25 +109,24 @@ export default function PostDetailsPage() {
 
                 {/* 主内容区域 */}
                 <main className="flex-1 border-x border-border">
-                    {/* 头部导航 */}
-                    <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-50">
-                        <div className="flex items-center space-x-4">
+                    {/* 返回按钮 */}
+                    <div className="sticky top-0 z-10 bg-background border-b border-border">
+                        <div className="flex items-center p-4">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => router.back()}
-                                className="flex items-center"
+                                className="-ml-2 mr-4"
                             >
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                返回
+                                <ArrowLeft className="h-4 w-4" />
                             </Button>
-                            <h1 className="text-xl font-bold">帖子详情</h1>
+                            <h1 className="text-lg font-semibold">帖子详情</h1>
                         </div>
                     </div>
 
                     {/* 帖子内容 */}
                     <div className="border-b border-border">
-                        <div className="p-6">
+                        <div className="p-4">
                             <div className="flex space-x-3">
                                 <Avatar className="h-10 w-10">
                                     <AvatarImage src={post.author.avatarUrl || ""} />
@@ -171,15 +136,15 @@ export default function PostDetailsPage() {
                                 </Avatar>
 
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center space-x-2">
-                                        <h3 className="font-semibold">
+                                    <div className="flex items-center space-x-2 mb-3">
+                                        <h2 className="font-semibold">
                                             {post.author.name || "匿名用户"}
-                                        </h3>
-                                        <span className="text-muted-foreground">
-                                            @{post.author.name?.toLowerCase().replace(/\s+/g, '') || "user"}
+                                        </h2>
+                                        <span className="text-muted-foreground text-sm">
+                                            @{post.author.username || post.author.name?.toLowerCase().replace(/\s+/g, '') || "user"}
                                         </span>
-                                        <span className="text-muted-foreground">·</span>
-                                        <span className="text-muted-foreground">
+                                        <span className="text-muted-foreground text-sm">·</span>
+                                        <span className="text-muted-foreground text-sm">
                                             {formatDistanceToNow(new Date(post.createdAt), {
                                                 addSuffix: true,
                                                 locale: zhCN
@@ -187,25 +152,27 @@ export default function PostDetailsPage() {
                                         </span>
                                     </div>
 
-                                    <div className="mt-4">
+                                    {/* 帖子内容 */}
+                                    <div className="mb-4">
                                         <LexicalRenderer
                                             lexicalState={post.lexicalState}
                                             contentHtml={post.contentHtml}
-                                            className="text-base leading-relaxed"
+                                            className="text-base whitespace-pre-wrap"
                                         />
+                                    </div>
 
-                                        {/* 图片展示 */}
-                                        {post.images.length > 0 && (
+                                    {/* 图片展示 */}
+                                    {post.images.length > 0 && (
+                                        <div className="mb-4">
                                             <ImagePreview
                                                 images={post.images.map(img => img.url)}
                                                 showRemoveButton={false}
                                                 onClick={(url) => window.open(url, '_blank')}
-                                                className="mt-4"
                                             />
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
 
-                                    {/* 互动栏 */}
+                                    {/* 统计信息 */}
                                     <div className="flex items-center space-x-6 mt-6 pt-4 border-t">
                                         <Button
                                             variant="ghost"
@@ -231,34 +198,12 @@ export default function PostDetailsPage() {
                         </div>
                     </div>
 
-                    {/* 评论表单 */}
-                    {session && (
-                        <CommentForm
-                            postId={post.id}
-                            onCommentCreated={handleCommentCreated}
-                            placeholder="发表你的看法..."
-                        />
-                    )}
-
-                    {/* 评论列表 */}
-                    <div className="divide-y divide-border">
-                        {comments.length === 0 ? (
-                            <div className="p-8 text-center text-muted-foreground">
-                                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                <p>还没有评论</p>
-                                <p className="text-sm">成为第一个评论的人吧！</p>
-                            </div>
-                        ) : (
-                            comments.map((comment) => (
-                                <div key={comment.id} className="px-6">
-                                    <CommentItem
-                                        comment={comment}
-                                        onReplyCreated={handleReplyCreated}
-                                    />
-                                </div>
-                            ))
-                        )}
-                    </div>
+                    {/* 评论区域 */}
+                    <CommentList
+                        postId={post.id}
+                        comments={comments}
+                        loading={false}
+                    />
                 </main>
 
                 {/* 右侧边栏 - 可选的额外信息 */}

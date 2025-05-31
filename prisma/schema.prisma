@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "./generated/client"
@@ -14,57 +8,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 用户表
 model User {
-  id             String   @id @default(cuid())
-  username       String?  @unique // For username/password login
-  email          String?  @unique // For OAuth and password recovery
-  hashedPassword String? // For username/password login
-  name           String?
-  avatarUrl      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // 关联关系
-  posts             Post[]
+  id                String             @id @default(cuid())
+  username          String?            @unique
+  email             String?            @unique
+  hashedPassword    String?
+  name              String?
+  avatarUrl         String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  accounts          Account[]
+  commentLikes      CommentLike[]
   comments          Comment[]
+  repliedComments   Comment[]          @relation("CommentReplyTo")
   likes             Like[]
   notifications     Notification[]     @relation("UserNotification")
+  posts             Post[]
   pushSubscriptions PushSubscription[]
-
-  // 评论相关关联
-  commentLikes    CommentLike[]
-  repliedComments Comment[]     @relation("CommentReplyTo")
-
-  // NextAuth.js specific
-  accounts Account[]
-  sessions Session[]
+  sessions          Session[]
 
   @@map("users")
 }
 
-// NextAuth.js Account model
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
 
-// NextAuth.js Session model
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -75,139 +59,116 @@ model Session {
   @@map("sessions")
 }
 
-// 帖子表
 model Post {
-  id           String   @id @default(cuid())
-  authorId     String
-  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  // For Lexical editor state
-  lexicalState Json // Stores the JSON output from editor.getEditorState().toJSON()
-  // Fallback or simplified HTML version for display if needed, generated from lexicalState
-  contentHtml  String?  @db.Text
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // 关联关系
-  images        PostImage[]
+  id            String         @id @default(cuid())
+  authorId      String
+  lexicalState  Json
+  contentHtml   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   comments      Comment[]
   likes         Like[]
   notifications Notification[] @relation("PostNotification")
+  images        PostImage[]
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("posts")
 }
 
-// 帖子图片表
 model PostImage {
   id         String   @id @default(cuid())
-  url        String // URL from Vercel Blob or Cloudflare R2
+  url        String
   altText    String?
   postId     String
-  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   uploadedAt DateTime @default(now())
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("post_images")
 }
 
-// 评论表
 model Comment {
-  id       String @id @default(cuid())
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  postId   String
-  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  // 富文本支持（与Post保持一致）
-  lexicalState Json? // Lexical编辑器状态
-  contentHtml  String? @db.Text // HTML备份，用于快速展示
-  content      String  @db.Text // 纯文本备份，用于搜索和通知
-
-  // 二层回复功能：评论(parentId=null) -> 回复(parentId!=null)
-  parentId      String? // 父评论ID，只支持一层回复
-  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies       Comment[] @relation("CommentReplies")
-  replyToUserId String? // 回复的目标用户ID（用于通知和显示）
-  replyToUser   User?     @relation("CommentReplyTo", fields: [replyToUserId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关联关系
+  id            String         @id @default(cuid())
+  content       String
+  authorId      String
+  postId        String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  contentHtml   String?
+  lexicalState  Json?
+  replyToUserId String?
   images        CommentImage[]
   likes         CommentLike[]
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  replyToUser   User?          @relation("CommentReplyTo", fields: [replyToUserId], references: [id])
   notifications Notification[] @relation("CommentNotification")
 
   @@map("comments")
 }
 
-// 评论图片表
 model CommentImage {
   id         String   @id @default(cuid())
-  url        String // 图片URL
-  altText    String? // 图片描述
+  url        String
+  altText    String?
   commentId  String
-  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   uploadedAt DateTime @default(now())
+  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@map("comment_images")
 }
 
-// 评论点赞表
 model CommentLike {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   commentId String
-  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, commentId]) // 每个用户只能给同一评论点赞一次
+  @@unique([userId, commentId])
   @@map("comment_likes")
 }
 
-// 点赞表
 model Like {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, postId]) // User can only like a post once
+  @@unique([userId, postId])
   @@map("likes")
 }
 
-// 通知表
 model Notification {
   id          String   @id @default(cuid())
-  recipientId String // The user who receives the notification
-  recipient   User     @relation("UserNotification", fields: [recipientId], references: [id], onDelete: Cascade)
-  actorId     String? // The user who performed the action (optional)
-  type        String // e.g., "NEW_COMMENT", "NEW_LIKE", "MENTION", "COMMENT_REPLY", "COMMENT_LIKE"
-  postId      String? // Link to the relevant post
-  post        Post?    @relation("PostNotification", fields: [postId], references: [id], onDelete: Cascade)
-  commentId   String? // Link to the relevant comment
-  comment     Comment? @relation("CommentNotification", fields: [commentId], references: [id], onDelete: Cascade)
+  recipientId String
+  actorId     String?
+  type        String
+  postId      String?
   read        Boolean  @default(false)
   createdAt   DateTime @default(now())
+  commentId   String?
+  comment     Comment? @relation("CommentNotification", fields: [commentId], references: [id], onDelete: Cascade)
+  post        Post?    @relation("PostNotification", fields: [postId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("UserNotification", fields: [recipientId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
 
-// PWA 推送订阅表
 model PushSubscription {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  endpoint  String   @unique // Subscription endpoint URL
-  p256dh    String // Public key for VAPID
-  auth      String // Auth secret for VAPID
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("push_subscriptions")
 }
 
-// NextAuth.js VerificationToken model (for email verification, password reset, etc.)
 model VerificationToken {
   identifier String
   token      String   @unique
