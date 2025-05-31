@@ -35,6 +35,10 @@ interface RichTextEditorProps {
 
     // 其他
     showToolbar?: boolean
+    showCancel?: boolean
+    onCancel?: () => void
+    cancelText?: string
+    customActions?: React.ReactNode // 自定义操作按钮
 }
 
 export function RichTextEditor({
@@ -55,7 +59,11 @@ export function RichTextEditor({
     submitText = "发布",
     isSubmitting = false,
     disabled = false,
-    showToolbar = true
+    showToolbar = true,
+    showCancel = false,
+    onCancel,
+    cancelText = "取消",
+    customActions
 }: RichTextEditorProps) {
     const [editorState, setEditorState] = useState<Record<string, unknown> | null>(null)
     const [isBold, setIsBold] = useState(false)
@@ -83,8 +91,8 @@ export function RichTextEditor({
             minHeight: '80px',
         },
         reply: {
-            maxImages: 0, // 回复时不支持图片
-            showFullToolbar: false,
+            maxImages: 4, // 回复时也支持图片，和comment模式一样
+            showFullToolbar: true, // 显示完整工具栏
             compactMode: true,
             minHeight: '60px',
         }
@@ -129,8 +137,7 @@ export function RichTextEditor({
     }
 
     const handleImagePaste = (files: File[]) => {
-        if (mode === 'reply') return // 回复模式不支持图片
-
+        // 所有模式都支持图片上传，根据maxImages限制即可
         const fileList = {
             length: files.length,
             item: (index: number) => files[index] || null,
@@ -161,21 +168,19 @@ export function RichTextEditor({
                 />
             </div>
 
-            {/* 图片预览 - 回复模式下不显示 */}
-            {mode !== 'reply' && (
-                <ImagePreview
-                    images={uploadedImages}
-                    onRemove={removeImage}
-                    className="mt-4 mx-4"
-                />
-            )}
+            {/* 图片预览 - 所有模式都显示 */}
+            <ImagePreview
+                images={uploadedImages}
+                onRemove={removeImage}
+                className="mt-4 mx-4"
+            />
 
             {/* 工具栏 */}
             {showToolbar && (
                 <EditorToolbar
                     isBold={isBold}
                     onBoldFormat={showBold && config.showFullToolbar ? handleBoldFormat : undefined}
-                    onImageUpload={showImageUpload && mode !== 'reply' ? handleImageUpload : undefined}
+                    onImageUpload={showImageUpload ? handleImageUpload : undefined}
                     isUploading={isUploading}
                     imageCount={uploadedImages.length}
                     maxImages={config.maxImages}
@@ -185,9 +190,13 @@ export function RichTextEditor({
                     isSubmitting={isSubmitting}
                     disabled={disabled || !canSubmit}
                     showBold={showBold && config.showFullToolbar}
-                    showImageUpload={showImageUpload && mode !== 'reply'}
+                    showImageUpload={showImageUpload}
                     showEmoji={showEmoji && config.showFullToolbar}
                     showSubmit={showSubmit}
+                    showCancel={showCancel}
+                    onCancel={onCancel}
+                    cancelText={cancelText}
+                    customActions={customActions}
                     className={`mt-4 p-4 border-t ${config.compactMode ? 'py-2' : ''}`}
                 />
             )}

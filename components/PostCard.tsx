@@ -258,41 +258,40 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                                     <RichTextEditor
                                         placeholder="编辑帖子内容..."
                                         onChange={handleEditorChange}
+                                        onSubmit={handleSaveEdit}
                                         initialValue={editedContentHtml}
                                         initialImages={editedImages}
                                         onImagesChange={setEditedImages}
                                         showToolbar={true}
                                         showSubmit={false}
                                         className="border-none shadow-none min-h-[100px]"
+                                        customActions={
+                                            <div className="flex items-center space-x-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={handleCancelEdit}
+                                                    disabled={isUpdating}
+                                                >
+                                                    取消
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={handleSaveEdit}
+                                                    disabled={isUpdating || (!editedLexicalState && editedImages.length === 0)}
+                                                >
+                                                    {isUpdating ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                            更新中...
+                                                        </>
+                                                    ) : (
+                                                        '保存'
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        }
                                     />
-
-                                    {/* 编辑模式的控制栏 */}
-                                    <div className="flex items-center justify-end mt-3 p-2 border-t">
-                                        <div className="flex items-center space-x-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={handleCancelEdit}
-                                                disabled={isUpdating}
-                                            >
-                                                取消
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={handleSaveEdit}
-                                                disabled={isUpdating || (!editedLexicalState && editedImages.length === 0)}
-                                            >
-                                                {isUpdating ? (
-                                                    <>
-                                                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                                        更新中...
-                                                    </>
-                                                ) : (
-                                                    '保存'
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </div>
                                 </div>
                             ) : (
                                 <>

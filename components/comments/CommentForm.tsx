@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { createComment } from "@/app/actions/comments"
 import { toast } from "sonner"
 import { RichTextEditor } from "../editor/RichTextEditor"
@@ -129,23 +128,11 @@ export function CommentForm({
                         isSubmitting={isSubmitting}
                         mode={editorMode}
                         maxHeight={replyToUser ? "120px" : "150px"}
-                        showImageUpload={!replyToUser} // 回复时不显示图片上传
                         className="border-none shadow-none"
+                        showCancel={!!replyToUser}
+                        onCancel={onCancel}
+                        cancelText="取消"
                     />
-
-                    {/* 回复时显示取消按钮 */}
-                    {replyToUser && onCancel && (
-                        <div className="mt-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={onCancel}
-                                disabled={isSubmitting}
-                            >
-                                取消回复
-                            </Button>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

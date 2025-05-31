@@ -31,6 +31,10 @@ interface EditorToolbarProps {
     showImageUpload?: boolean
     showEmoji?: boolean
     showSubmit?: boolean
+    showCancel?: boolean
+    onCancel?: () => void
+    cancelText?: string
+    customActions?: React.ReactNode // 自定义操作按钮
     className?: string
 }
 
@@ -50,6 +54,10 @@ export function EditorToolbar({
     showImageUpload = true,
     showEmoji = true,
     showSubmit = true,
+    showCancel = false,
+    onCancel,
+    cancelText = "取消",
+    customActions,
     className = ""
 }: EditorToolbarProps) {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -136,17 +144,34 @@ export function EditorToolbar({
                     )}
                 </div>
 
-                {/* 提交按钮 */}
-                {showSubmit && onSubmit && (
-                    <Button
-                        type="button"
-                        onClick={onSubmit}
-                        disabled={disabled || isSubmitting}
-                        className="rounded-full"
-                    >
-                        {isSubmitting ? `${submitText}中...` : submitText}
-                    </Button>
-                )}
+                {/* 提交按钮区域 */}
+                {customActions ? (
+                    customActions
+                ) : (showSubmit && onSubmit) || (showCancel && onCancel) ? (
+                    <div className="flex items-center space-x-2">
+                        {showCancel && onCancel && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={onCancel}
+                                disabled={isSubmitting}
+                            >
+                                {cancelText}
+                            </Button>
+                        )}
+                        {showSubmit && onSubmit && (
+                            <Button
+                                type="button"
+                                onClick={onSubmit}
+                                disabled={disabled || isSubmitting}
+                                className="rounded-full"
+                            >
+                                {isSubmitting ? `${submitText}中...` : submitText}
+                            </Button>
+                        )}
+                    </div>
+                ) : null}
             </div>
 
             {/* 表情选择器 */}
