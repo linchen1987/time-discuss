@@ -32,6 +32,10 @@ model User {
   notifications     Notification[]     @relation("UserNotification")
   pushSubscriptions PushSubscription[]
 
+  // 评论相关关联
+  commentLikes    CommentLike[]
+  repliedComments Comment[]     @relation("CommentReplyTo")
+
   // NextAuth.js specific
   accounts Account[]
   sessions Session[]
@@ -106,16 +110,58 @@ model PostImage {
 
 // 评论表
 model Comment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text // For simplicity, comments are plain text initially
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // 富文本支持（与Post保持一致）
+  lexicalState Json? // Lexical编辑器状态
+  contentHtml  String? @db.Text // HTML备份，用于快速展示
+  content      String  @db.Text // 纯文本备份，用于搜索和通知
+
+  // 二层回复功能：评论(parentId=null) -> 回复(parentId!=null)
+  parentId      String? // 父评论ID，只支持一层回复
+  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       Comment[] @relation("CommentReplies")
+  replyToUserId String? // 回复的目标用户ID（用于通知和显示）
+  replyToUser   User?     @relation("CommentReplyTo", fields: [replyToUserId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // 关联关系
+  images        CommentImage[]
+  likes         CommentLike[]
+  notifications Notification[] @relation("CommentNotification")
+
   @@map("comments")
+}
+
+// 评论图片表
+model CommentImage {
+  id         String   @id @default(cuid())
+  url        String // 图片URL
+  altText    String? // 图片描述
+  commentId  String
+  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  uploadedAt DateTime @default(now())
+
+  @@map("comment_images")
+}
+
+// 评论点赞表
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, commentId]) // 每个用户只能给同一评论点赞一次
+  @@map("comment_likes")
 }
 
 // 点赞表
@@ -137,9 +183,11 @@ model Notification {
   recipientId String // The user who receives the notification
   recipient   User     @relation("UserNotification", fields: [recipientId], references: [id], onDelete: Cascade)
   actorId     String? // The user who performed the action (optional)
-  type        String // e.g., "NEW_COMMENT", "NEW_LIKE", "MENTION"
+  type        String // e.g., "NEW_COMMENT", "NEW_LIKE", "MENTION", "COMMENT_REPLY", "COMMENT_LIKE"
   postId      String? // Link to the relevant post
   post        Post?    @relation("PostNotification", fields: [postId], references: [id], onDelete: Cascade)
+  commentId   String? // Link to the relevant comment
+  comment     Comment? @relation("CommentNotification", fields: [commentId], references: [id], onDelete: Cascade)
   read        Boolean  @default(false)
   createdAt   DateTime @default(now())
 

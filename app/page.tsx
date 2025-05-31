@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Sidebar } from "@/components/Sidebar"
 import { PostForm } from "@/components/PostForm"
-import { PostCard } from "@/components/PostCard"
+import { PostList } from "@/components/PostList"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User } from "lucide-react"
@@ -29,9 +29,8 @@ interface UserProfile {
 
 export default function Home() {
   const { data: session, status } = useSession()
-  const [posts, setPosts] = useState<PostWithDetails[]>([])
-  const [postsLoading, setPostsLoading] = useState(true)
   const [user, setUser] = useState<UserProfile | null>(null)
+  const [newPost, setNewPost] = useState<PostWithDetails | null>(null)
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -77,40 +76,11 @@ export default function Home() {
     }
   }, [session])
 
-  // 获取帖子列表
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('/api/posts')
-        if (response.ok) {
-          const data = await response.json()
-          setPosts(data)
-        }
-      } catch (error) {
-        logError('HomePage', error, 'Failed to fetch posts')
-      } finally {
-        setPostsLoading(false)
-      }
-    }
-
-    fetchPosts()
-  }, [])
-
   // 处理新帖子创建
-  const handlePostCreated = (newPost: PostWithDetails) => {
-    setPosts(prev => [newPost, ...prev])
-  }
-
-  // 处理帖子删除
-  const handlePostDeleted = (postId: string) => {
-    setPosts(prev => prev.filter(post => post.id !== postId))
-  }
-
-  // 处理帖子更新
-  const handlePostUpdated = (updatedPost: PostWithDetails) => {
-    setPosts(prev => prev.map(post =>
-      post.id === updatedPost.id ? updatedPost : post
-    ))
+  const handlePostCreated = (newPostData: PostWithDetails) => {
+    setNewPost(newPostData)
+    // 清除 newPost 状态，以便下次可以正常触发
+    setTimeout(() => setNewPost(null), 100)
   }
 
   // 如果会话正在加载，显示最小化的加载状态
@@ -159,25 +129,7 @@ export default function Home() {
 
             {/* 帖子列表 */}
             <div>
-              {postsLoading ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>加载中...</p>
-                </div>
-              ) : posts.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>还没有任何帖子</p>
-                  <p className="text-sm mt-1">成为第一个分享的人吧！</p>
-                </div>
-              ) : (
-                posts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onPostDeleted={handlePostDeleted}
-                    onPostUpdated={handlePostUpdated}
-                  />
-                ))
-              )}
+              <PostList newPost={newPost} />
             </div>
           </main>
 
@@ -290,25 +242,7 @@ export default function Home() {
 
           {/* 帖子列表 */}
           <div>
-            {postsLoading ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>加载中...</p>
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>还没有任何帖子</p>
-                <p className="text-sm mt-1">成为第一个分享的人吧！</p>
-              </div>
-            ) : (
-              posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onPostDeleted={handlePostDeleted}
-                  onPostUpdated={handlePostUpdated}
-                />
-              ))
-            )}
+            <PostList newPost={newPost} />
           </div>
         </main>
       </div>

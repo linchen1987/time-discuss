@@ -5,7 +5,12 @@ import { PostCard } from "@/components/PostCard"
 import type { PostWithDetails } from "@/lib/types"
 import { logError } from '@/lib/debug'
 
-export function PostList() {
+interface PostListProps {
+    onPostCreated?: (post: PostWithDetails) => void
+    newPost?: PostWithDetails | null // 从外部传入的新帖子
+}
+
+export function PostList({ onPostCreated, newPost }: PostListProps) {
     const [posts, setPosts] = useState<PostWithDetails[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -27,6 +32,16 @@ export function PostList() {
 
         fetchPosts()
     }, [])
+
+    // 处理新帖子创建
+    useEffect(() => {
+        if (newPost) {
+            setPosts(prev => [newPost, ...prev])
+            if (onPostCreated) {
+                onPostCreated(newPost)
+            }
+        }
+    }, [newPost, onPostCreated])
 
     // 处理帖子删除
     const handlePostDeleted = (postId: string) => {

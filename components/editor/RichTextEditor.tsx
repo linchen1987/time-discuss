@@ -15,6 +15,10 @@ interface RichTextEditorProps {
     onSubmit?: () => void
     className?: string
 
+    // 新增：模式相关
+    mode?: 'post' | 'comment' | 'reply' // 使用模式
+    maxHeight?: string // 最大高度限制
+
     // 图片相关
     maxImages?: number
     initialImages?: string[]
@@ -39,6 +43,8 @@ export function RichTextEditor({
     onChange,
     onSubmit,
     className = "",
+    mode = 'post',
+    maxHeight,
     maxImages = 9,
     initialImages = [],
     onImagesChange,
@@ -61,6 +67,30 @@ export function RichTextEditor({
         removeImage,
         setUploadedImages
     } = useImageUpload({ maxImages })
+
+    // 根据模式调整配置
+    const modeConfig = {
+        post: {
+            maxImages: 9,
+            showFullToolbar: true,
+            compactMode: false,
+        },
+        comment: {
+            maxImages: 4,
+            showFullToolbar: true,
+            compactMode: false,
+        },
+        reply: {
+            maxImages: 0, // 回复时不支持图片
+            showFullToolbar: false,
+            compactMode: true,
+        }
+    }
+
+    const config = modeConfig[mode]
+
+    // 动态计算样式
+    const editorStyle = maxHeight ? { maxHeight, overflowY: 'auto' as const } : {}
 
     // 初始化图片
     React.useEffect(() => {
@@ -96,6 +126,8 @@ export function RichTextEditor({
     }
 
     const handleImagePaste = (files: File[]) => {
+        if (mode === 'reply') return // 回复模式不支持图片
+
         const fileList = {
             length: files.length,
             item: (index: number) => files[index] || null,
@@ -112,43 +144,47 @@ export function RichTextEditor({
 
     return (
         <div className={`border border-border rounded-md bg-background ${className}`}>
-            <LexicalEditor
-                placeholder={placeholder}
-                initialValue={initialValue}
-                onChange={handleEditorChange}
-                onFormatChange={handleFormatChange}
-                onSubmit={onSubmit}
-                onImagePaste={handleImagePaste}
-                showToolbar={false}
-                className="border-none shadow-none"
-            />
+            <div style={editorStyle}>
+                <LexicalEditor
+                    placeholder={placeholder}
+                    initialValue={initialValue}
+                    onChange={handleEditorChange}
+                    onFormatChange={handleFormatChange}
+                    onSubmit={onSubmit}
+                    onImagePaste={handleImagePaste}
+                    showToolbar={false}
+                    className="border-none shadow-none"
+                />
+            </div>
 
-            {/* 图片预览 */}
-            <ImagePreview
-                images={uploadedImages}
-                onRemove={removeImage}
-                className="mt-4 mx-4"
-            />
+            {/* 图片预览 - 回复模式下不显示 */}
+            {mode !== 'reply' && (
+                <ImagePreview
+                    images={uploadedImages}
+                    onRemove={removeImage}
+                    className="mt-4 mx-4"
+                />
+            )}
 
             {/* 工具栏 */}
             {showToolbar && (
                 <EditorToolbar
                     isBold={isBold}
-                    onBoldFormat={showBold ? handleBoldFormat : undefined}
-                    onImageUpload={showImageUpload ? handleImageUpload : undefined}
+                    onBoldFormat={showBold && config.showFullToolbar ? handleBoldFormat : undefined}
+                    onImageUpload={showImageUpload && mode !== 'reply' ? handleImageUpload : undefined}
                     isUploading={isUploading}
                     imageCount={uploadedImages.length}
-                    maxImages={maxImages}
-                    onEmojiSelect={showEmoji ? handleEmojiSelect : undefined}
+                    maxImages={config.maxImages}
+                    onEmojiSelect={showEmoji && config.showFullToolbar ? handleEmojiSelect : undefined}
                     onSubmit={showSubmit ? onSubmit : undefined}
                     submitText={submitText}
                     isSubmitting={isSubmitting}
                     disabled={disabled || !canSubmit}
-                    showBold={showBold}
-                    showImageUpload={showImageUpload}
-                    showEmoji={showEmoji}
+                    showBold={showBold && config.showFullToolbar}
+                    showImageUpload={showImageUpload && mode !== 'reply'}
+                    showEmoji={showEmoji && config.showFullToolbar}
                     showSubmit={showSubmit}
-                    className="mt-4 p-4 border-t"
+                    className={`mt-4 p-4 border-t ${config.compactMode ? 'py-2' : ''}`}
                 />
             )}
         </div>

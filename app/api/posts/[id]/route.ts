@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { postOperations } from '@/lib/db-utils';
+import { prisma } from '@/lib/prisma';
+import { logError } from '@/lib/debug';
 
 interface RouteParams {
   params: Promise<{
@@ -10,8 +12,10 @@ interface RouteParams {
 }
 
 interface SessionWithUser {
-  user?: {
+  user: {
     id: string;
+    name?: string | null;
+    email?: string | null;
   };
 }
 
@@ -86,5 +90,145 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     return NextResponse.json({ error: '更新失败，请重试' }, { status: 500 });
+  }
+}
+
+// 获取帖子详情（包含评论）
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+
+    // 获取帖子详情，包含完整的评论数据
+    const post = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            altText: true,
+          },
+        },
+        likes: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
+        comments: {
+          where: {
+            parentId: null, // 只获取顶级评论
+          },
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatarUrl: true,
+              },
+            },
+            replyToUser: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
+            images: {
+              select: {
+                id: true,
+                url: true,
+                altText: true,
+              },
+            },
+            likes: {
+              select: {
+                id: true,
+                userId: true,
+              },
+            },
+            replies: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    avatarUrl: true,
+                  },
+                },
+                replyToUser: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                  },
+                },
+                images: {
+                  select: {
+                    id: true,
+                    url: true,
+                    altText: true,
+                  },
+                },
+                likes: {
+                  select: {
+                    id: true,
+                    userId: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    likes: true,
+                    replies: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: 'asc',
+              },
+            },
+            _count: {
+              select: {
+                likes: true,
+                replies: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+          },
+        },
+      },
+    });
+
+    if (!post) {
+      return Response.json({ error: '帖子不存在' }, { status: 404 });
+    }
+
+    return Response.json(post);
+  } catch (error) {
+    logError('GET /api/posts/[id]', error, 'Failed to fetch post details');
+    return Response.json({ error: '获取帖子详情失败' }, { status: 500 });
   }
 }

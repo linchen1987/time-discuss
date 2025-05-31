@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
@@ -38,6 +39,7 @@ interface PostCardProps {
 
 export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) {
     const { data: session } = useSession()
+    const router = useRouter()
     const userId = session?.user ? (session.user as { id: string }).id : undefined
 
     const [isLiked, setIsLiked] = useState(false)
@@ -62,6 +64,16 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             debugPosts('重新计算点赞状态: postId=%s, userId=%s, userHasLiked=%s', post.id, userId, userHasLiked)
         }
     }, [userId, post.likes, post.id])
+
+    // 跳转到详情页
+    const handlePostClick = () => {
+        router.push(`/posts/${post.id}`)
+    }
+
+    // 阻止按钮点击事件冒泡
+    const stopPropagation = (e: React.MouseEvent) => {
+        e.stopPropagation()
+    }
 
     const handleLike = async () => {
         if (!session || isLiking) return
@@ -182,7 +194,10 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
     }
 
     return (
-        <div className="border-b border-border hover:bg-muted/50 transition-colors">
+        <div
+            className="border-b border-border hover:bg-muted/50 transition-colors cursor-pointer"
+            onClick={handlePostClick}
+        >
             <div className="p-4">
                 <div className="flex space-x-3">
                     <Avatar>
@@ -208,7 +223,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                                 })}
                             </span>
                             {isAuthor && (
-                                <div className="ml-auto">
+                                <div className="ml-auto" onClick={stopPropagation}>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="sm">
@@ -236,7 +251,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
 
                         <div className="mt-2">
                             {isEditing ? (
-                                <div>
+                                <div onClick={stopPropagation}>
                                     <RichTextEditor
                                         placeholder="编辑帖子内容..."
                                         onChange={handleEditorChange}
@@ -295,11 +310,12 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                             )}
                         </div>
 
-                        <div className="flex items-center space-x-6 mt-3">
+                        <div className="flex items-center space-x-6 mt-3" onClick={stopPropagation}>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 className="text-muted-foreground hover:text-blue-600"
+                                onClick={handlePostClick}
                             >
                                 <MessageCircle className="h-4 w-4 mr-1" />
                                 {post._count.comments}

@@ -65,8 +65,21 @@ export const postValidation = {
 export const commentValidation = {
   // 创建评论验证
   create: z.object({
-    content: z.string().min(1, '评论内容不能为空').max(1000, '评论内容最多1000个字符'),
     postId: z.string().min(1, '帖子ID不能为空'),
+    lexicalState: z.record(z.unknown()).nullable(),
+    contentHtml: z.string().optional(),
+    content: z.string().min(1, '评论内容不能为空').max(1000, '评论内容最多1000个字符'),
+    imageUrls: z.array(z.string().url()).optional().default([]),
+    parentId: z.string().optional(),
+    replyToUserId: z.string().optional(),
+  }),
+
+  // 更新评论验证
+  update: z.object({
+    lexicalState: z.record(z.unknown()).nullable(),
+    contentHtml: z.string().optional(),
+    content: z.string().min(1, '评论内容不能为空').max(1000, '评论内容最多1000个字符'),
+    imageUrls: z.array(z.string().url()).optional().default([]),
   }),
 };
 
