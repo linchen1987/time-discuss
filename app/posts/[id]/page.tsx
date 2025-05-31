@@ -163,7 +163,7 @@ export default function PostDetailsPage() {
                     <div className="border-b border-border">
                         <div className="p-6">
                             <div className="flex space-x-3">
-                                <Avatar className="h-12 w-12">
+                                <Avatar className="h-10 w-10">
                                     <AvatarImage src={post.author.avatarUrl || ""} />
                                     <AvatarFallback>
                                         {post.author.name?.charAt(0) || "U"}
@@ -250,11 +250,12 @@ export default function PostDetailsPage() {
                             </div>
                         ) : (
                             comments.map((comment) => (
-                                <CommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    onReplyCreated={handleReplyCreated}
-                                />
+                                <div key={comment.id} className="px-6">
+                                    <CommentItem
+                                        comment={comment}
+                                        onReplyCreated={handleReplyCreated}
+                                    />
+                                </div>
                             ))
                         )}
                     </div>

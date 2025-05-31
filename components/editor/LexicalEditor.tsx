@@ -253,6 +253,7 @@ interface LexicalEditorProps {
     onFormatChange?: (formats: { isBold: boolean }) => void
     showToolbar?: boolean
     className?: string
+    minHeight?: string
 }
 
 export default function LexicalEditor({
@@ -263,7 +264,8 @@ export default function LexicalEditor({
     onImagePaste,
     onFormatChange,
     showToolbar = true,
-    className = ""
+    className = "",
+    minHeight = "80px"
 }: LexicalEditorProps) {
     const initialConfig = {
         namespace: 'TimeDiscussEditor',
@@ -304,7 +306,7 @@ export default function LexicalEditor({
                     <RichTextPlugin
                         contentEditable={
                             <ContentEditable
-                                className="min-h-[120px] p-1 pl-2 text-base leading-relaxed focus:outline-none resize-none text-foreground"
+                                className={`min-h-[${minHeight}] p-1 pl-2 text-base leading-relaxed focus:outline-none resize-none text-foreground`}
                                 spellCheck={false}
                             />
                         }

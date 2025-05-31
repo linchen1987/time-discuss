@@ -56,7 +56,7 @@ export function CommentItem({
         <div className={`${level > 0 ? 'ml-8 pl-4 border-l-2 border-muted' : ''}`}>
             <div className="py-3">
                 <div className="flex space-x-3">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-10 w-10">
                         <AvatarImage src={comment.author.avatarUrl || ""} />
                         <AvatarFallback>
                             {comment.author.name?.charAt(0) || "U"}

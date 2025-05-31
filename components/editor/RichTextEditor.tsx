@@ -74,16 +74,19 @@ export function RichTextEditor({
             maxImages: 9,
             showFullToolbar: true,
             compactMode: false,
+            minHeight: '100px',
         },
         comment: {
             maxImages: 4,
             showFullToolbar: true,
-            compactMode: false,
+            compactMode: true,
+            minHeight: '80px',
         },
         reply: {
             maxImages: 0, // 回复时不支持图片
             showFullToolbar: false,
             compactMode: true,
+            minHeight: '60px',
         }
     }
 
@@ -154,6 +157,7 @@ export function RichTextEditor({
                     onImagePaste={handleImagePaste}
                     showToolbar={false}
                     className="border-none shadow-none"
+                    minHeight={config.minHeight}
                 />
             </div>
 

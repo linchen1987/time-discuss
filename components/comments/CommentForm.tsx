@@ -114,7 +114,7 @@ export function CommentForm({
     return (
         <div className={`${compact ? 'p-2' : 'p-4'} ${parentId ? 'border-l-2 border-muted ml-4' : 'border-b border-border'}`}>
             <div className="flex space-x-3">
-                <Avatar className={compact ? 'h-8 w-8' : 'h-10 w-10'}>
+                <Avatar className={compact ? 'h-10 w-10' : 'h-10 w-10'}>
                     <AvatarImage src={user?.avatarUrl || ""} />
                     <AvatarFallback>
                         {user?.name?.charAt(0) || "U"}
@@ -131,7 +131,7 @@ export function CommentForm({
                         submitText={parentId ? "回复" : "评论"}
                         isSubmitting={isSubmitting}
                         mode={editorMode}
-                        maxHeight={parentId ? "120px" : "200px"}
+                        maxHeight={parentId ? "120px" : "150px"}
                         showImageUpload={!parentId} // 回复时不显示图片上传
                         className="border-none shadow-none"
                     />
