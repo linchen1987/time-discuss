@@ -67,6 +67,10 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
 
     // 跳转到详情页
     const handlePostClick = () => {
+        // 如果删除对话框正在显示，则不跳转
+        if (showDeleteDialog) {
+            return
+        }
         router.push(`/posts/${post.id}`)
     }
 

@@ -13,6 +13,18 @@ export async function createPost(lexicalState: Record<string, unknown> | null, c
       throw new Error('请先登录');
     }
 
+    // 确保 lexicalState 不为 null，提供默认值
+    const validLexicalState = lexicalState || {
+      root: {
+        children: [],
+        direction: 'ltr',
+        format: '',
+        indent: 0,
+        type: 'root',
+        version: 1,
+      },
+    };
+
     // 从内容中提取纯文本用于搜索
     const extractPlainText = (html: string): string => {
       return html.replace(/<[^>]*>/g, '').trim();
@@ -27,10 +39,10 @@ export async function createPost(lexicalState: Record<string, unknown> | null, c
 
     // 调用数据库操作
     const newPost = await import('@/lib/db-utils').then(({ postOperations }) =>
-      postOperations.create(session.user.id!, {
-        lexicalState,
+      postOperations.create({
+        authorId: session.user.id!,
+        lexicalState: validLexicalState,
         contentHtml,
-        content: plainTextContent,
         images: imageUrls?.map((url) => ({ url, altText: '' })),
       })
     );
