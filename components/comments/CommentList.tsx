@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CommentItem } from "./CommentItem"
 import { CommentForm } from "./CommentForm"
 import type { CommentWithDetails } from "@/lib/types"
@@ -22,12 +22,31 @@ export function CommentList({
 }: CommentListProps) {
     const [localComments, setLocalComments] = useState<CommentWithDetails[]>(comments)
 
+    // 当外部comments变化时，同步到本地状态
+    useEffect(() => {
+        setLocalComments(comments)
+    }, [comments])
+
     const handleNewComment = (newComment: CommentWithDetails) => {
         setLocalComments(prev => [...prev, newComment])
     }
 
     const handleReplyCreated = (newReply: CommentWithDetails) => {
         setLocalComments(prev => [...prev, newReply])
+    }
+
+    const handleCommentUpdated = (updatedComment: CommentWithDetails) => {
+        setLocalComments(prev =>
+            prev.map(comment =>
+                comment.id === updatedComment.id ? updatedComment : comment
+            )
+        )
+    }
+
+    const handleCommentDeleted = (commentId: string) => {
+        setLocalComments(prev =>
+            prev.filter(comment => comment.id !== commentId)
+        )
     }
 
     return (
@@ -47,6 +66,8 @@ export function CommentList({
                         key={comment.id}
                         comment={comment}
                         onReplyCreated={handleReplyCreated}
+                        onCommentUpdated={handleCommentUpdated}
+                        onCommentDeleted={handleCommentDeleted}
                     />
                 ))}
             </div>

@@ -339,6 +339,88 @@ export const commentOperations = {
     return comment;
   },
 
+  // 更新评论
+  async update(
+    commentId: string,
+    userId: string,
+    data: {
+      lexicalState: Record<string, unknown> | null;
+      contentHtml?: string;
+      content: string;
+      images?: { url: string; altText?: string }[];
+    }
+  ) {
+    // 确保只有作者可以编辑自己的评论
+    const comment = await prisma.comment.findFirst({
+      where: {
+        id: commentId,
+        authorId: userId,
+      },
+    });
+
+    if (!comment) {
+      throw new Error('Comment not found or unauthorized');
+    }
+
+    // 如果有新图片，需要删除旧图片并创建新图片
+    if (data.images !== undefined) {
+      // 删除旧图片
+      await prisma.commentImage.deleteMany({
+        where: { commentId },
+      });
+    }
+
+    return await prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        lexicalState: data.lexicalState as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        contentHtml: data.contentHtml,
+        content: data.content,
+        updatedAt: new Date(),
+        images: data.images
+          ? {
+              create: data.images,
+            }
+          : undefined,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+        replyToUser: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+          },
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            altText: true,
+          },
+        },
+        likes: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    });
+  },
+
   // 删除评论
   async delete(commentId: string, userId: string) {
     const comment = await prisma.comment.findFirst({

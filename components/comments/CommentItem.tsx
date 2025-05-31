@@ -4,27 +4,62 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle } from "lucide-react"
+import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
+import { toast } from "sonner"
 import LexicalRenderer from "../LexicalRenderer"
+import { RichTextEditor } from "../editor/RichTextEditor"
 import { ImagePreview } from "@/components/ui/ImagePreview"
 import { CommentForm } from "./CommentForm"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { logError } from '@/lib/debug'
 import type { CommentWithDetails } from "@/lib/types"
 
 interface CommentItemProps {
     comment: CommentWithDetails
     onReplyCreated?: (comment: CommentWithDetails) => void
+    onCommentDeleted?: (commentId: string) => void
+    onCommentUpdated?: (updatedComment: CommentWithDetails) => void
     className?: string
 }
 
 export function CommentItem({
     comment,
     onReplyCreated,
+    onCommentDeleted,
+    onCommentUpdated,
     className
 }: CommentItemProps) {
     const { data: session } = useSession()
+    const userId = session?.user ? (session.user as { id: string }).id : undefined
+
     const [showReplyForm, setShowReplyForm] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [editedLexicalState, setEditedLexicalState] = useState<Record<string, unknown> | null>(comment.lexicalState)
+    const [editedContentHtml, setEditedContentHtml] = useState(comment.contentHtml || "")
+    const [editedImages, setEditedImages] = useState<string[]>(comment.images?.map(img => img.url) || [])
+
+    // 检查当前用户是否是评论作者
+    const isAuthor = userId === comment.authorId
 
     const handleReplyClick = () => {
         if (!session) return
@@ -40,6 +75,129 @@ export function CommentItem({
         if (onReplyCreated) {
             onReplyCreated(newReply)
         }
+    }
+
+    const handleEditClick = () => {
+        setIsEditing(true)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditing(false)
+        setEditedLexicalState(comment.lexicalState)
+        setEditedContentHtml(comment.contentHtml || "")
+        setEditedImages(comment.images?.map(img => img.url) || [])
+    }
+
+    const handleSaveEdit = async () => {
+        if (!session || isUpdating) return
+        if (!editedLexicalState && editedImages.length === 0) return
+
+        setIsUpdating(true)
+        try {
+            const response = await fetch(`/api/comments/${comment.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lexicalState: editedLexicalState,
+                    contentHtml: editedContentHtml,
+                    imageUrls: editedImages,
+                }),
+            })
+
+            if (!response.ok) {
+                // 尝试解析错误响应
+                let errorMessage = '更新失败'
+                try {
+                    const errorData = await response.json()
+                    errorMessage = errorData.error || errorMessage
+                } catch {
+                    // 如果不是JSON响应（比如404 HTML页面），使用状态码提示
+                    if (response.status === 404) {
+                        errorMessage = '评论API接口不存在，请联系管理员'
+                    } else if (response.status === 403) {
+                        errorMessage = '没有权限编辑此评论'
+                    } else {
+                        errorMessage = `请求失败 (${response.status})`
+                    }
+                }
+                throw new Error(errorMessage)
+            }
+
+            const result = await response.json()
+            toast.success('评论已更新')
+            setIsEditing(false)
+
+            // 通知父组件更新数据
+            if (onCommentUpdated && result.comment) {
+                onCommentUpdated(result.comment)
+            }
+
+        } catch (error) {
+            logError('CommentItem', error, 'Update operation failed')
+            toast.error(error instanceof Error ? error.message : '更新失败，请重试')
+        } finally {
+            setIsUpdating(false)
+        }
+    }
+
+    const handleDeleteClick = () => {
+        setShowDeleteDialog(true)
+    }
+
+    const handleDelete = async () => {
+        if (!session || isDeleting) return
+
+        setIsDeleting(true)
+        try {
+            const response = await fetch(`/api/comments/${comment.id}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) {
+                // 尝试解析错误响应
+                let errorMessage = '删除失败'
+                try {
+                    const errorData = await response.json()
+                    errorMessage = errorData.error || errorMessage
+                } catch {
+                    // 如果不是JSON响应（比如404 HTML页面），使用状态码提示
+                    if (response.status === 404) {
+                        errorMessage = '评论API接口不存在，请联系管理员'
+                    } else if (response.status === 403) {
+                        errorMessage = '没有权限删除此评论'
+                    } else {
+                        errorMessage = `请求失败 (${response.status})`
+                    }
+                }
+                throw new Error(errorMessage)
+            }
+
+            toast.success('评论已删除')
+
+            // 通知父组件更新列表
+            if (onCommentDeleted) {
+                onCommentDeleted(comment.id)
+            }
+
+        } catch (error) {
+            logError('CommentItem', error, 'Delete operation failed')
+            toast.error(error instanceof Error ? error.message : '删除失败，请重试')
+        } finally {
+            setIsDeleting(false)
+            setShowDeleteDialog(false)
+        }
+    }
+
+    const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {
+        setEditedLexicalState(editorState)
+        setEditedContentHtml(html)
+    }
+
+    // 阻止事件冒泡
+    const stopPropagation = (e: React.MouseEvent) => {
+        e.stopPropagation()
     }
 
     return (
@@ -77,56 +235,129 @@ export function CommentItem({
                                 </span>
                             </>
                         )}
+
+                        {/* 作者操作菜单 */}
+                        {isAuthor && (
+                            <div className="ml-auto" onClick={stopPropagation}>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={handleEditClick}>
+                                            <Edit className="h-4 w-4 mr-2" />
+                                            编辑
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            variant="destructive"
+                                            onClick={handleDeleteClick}
+                                            disabled={isDeleting}
+                                        >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            {isDeleting ? '删除中...' : '删除'}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        )}
                     </div>
 
                     {/* 评论内容 */}
                     <div className="mt-2">
-                        {comment.lexicalState ? (
-                            <LexicalRenderer
-                                lexicalState={comment.lexicalState}
-                                contentHtml={comment.contentHtml}
-                                className="text-sm"
-                            />
+                        {isEditing ? (
+                            <div onClick={stopPropagation}>
+                                <RichTextEditor
+                                    placeholder="编辑评论内容..."
+                                    onChange={handleEditorChange}
+                                    onSubmit={handleSaveEdit}
+                                    initialValue={editedContentHtml}
+                                    initialImages={editedImages}
+                                    onImagesChange={setEditedImages}
+                                    showToolbar={true}
+                                    showSubmit={false}
+                                    className="border-none shadow-none min-h-[80px]"
+                                    customActions={
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleCancelEdit}
+                                                disabled={isUpdating}
+                                            >
+                                                取消
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                onClick={handleSaveEdit}
+                                                disabled={isUpdating || (!editedLexicalState && editedImages.length === 0)}
+                                            >
+                                                {isUpdating ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                        更新中...
+                                                    </>
+                                                ) : (
+                                                    '保存'
+                                                )}
+                                            </Button>
+                                        </div>
+                                    }
+                                />
+                            </div>
                         ) : (
-                            <p className="text-sm">{comment.content}</p>
+                            <>
+                                {comment.lexicalState ? (
+                                    <LexicalRenderer
+                                        lexicalState={comment.lexicalState}
+                                        contentHtml={comment.contentHtml}
+                                        className="text-sm"
+                                    />
+                                ) : (
+                                    <p className="text-sm">{comment.content}</p>
+                                )}
+
+                                {/* 图片展示 */}
+                                {comment.images && comment.images.length > 0 && (
+                                    <div className="mt-3">
+                                        <ImagePreview
+                                            images={comment.images.map(img => img.url)}
+                                            className="max-w-md"
+                                            showRemoveButton={false}
+                                            onClick={(url) => window.open(url, '_blank')}
+                                        />
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
 
-                    {/* 图片展示 */}
-                    {comment.images && comment.images.length > 0 && (
-                        <div className="mt-3">
-                            <ImagePreview
-                                images={comment.images.map(img => img.url)}
-                                className="max-w-md"
-                                showRemoveButton={false}
-                                onClick={(url) => window.open(url, '_blank')}
-                            />
+                    {/* 操作按钮 */}
+                    {!isEditing && (
+                        <div className="flex items-center space-x-4 mt-3">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-blue-600"
+                                onClick={handleReplyClick}
+                                disabled={!session}
+                            >
+                                <MessageCircle className="h-4 w-4 mr-1" />
+                                回复
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-red-600"
+                                disabled={!session}
+                            >
+                                <Heart className="h-4 w-4 mr-1" />
+                                {comment._count.likes}
+                            </Button>
                         </div>
                     )}
-
-                    {/* 操作按钮 */}
-                    <div className="flex items-center space-x-4 mt-3">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted-foreground hover:text-blue-600"
-                            onClick={handleReplyClick}
-                            disabled={!session}
-                        >
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            回复
-                        </Button>
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted-foreground hover:text-red-600"
-                            disabled={!session}
-                        >
-                            <Heart className="h-4 w-4 mr-1" />
-                            {comment._count.likes}
-                        </Button>
-                    </div>
                 </div>
             </div>
 
@@ -146,6 +377,28 @@ export function CommentItem({
                     />
                 </div>
             )}
+
+            {/* 删除确认对话框 */}
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>确认删除评论</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            确定要删除这条评论吗？此操作无法撤销，评论的所有内容、图片和点赞都将被永久删除。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                        >
+                            {isDeleting ? '删除中...' : '确认删除'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 } 
