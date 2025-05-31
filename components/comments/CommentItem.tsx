@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -58,8 +58,21 @@ export function CommentItem({
     const [editedContentHtml, setEditedContentHtml] = useState(comment.contentHtml || "")
     const [editedImages, setEditedImages] = useState<string[]>(comment.images?.map(img => img.url) || [])
 
+    // 添加点赞相关状态
+    const [isLiked, setIsLiked] = useState(false)
+    const [likeCount, setLikeCount] = useState(comment._count.likes)
+    const [isLiking, setIsLiking] = useState(false)
+
     // 检查当前用户是否是评论作者
     const isAuthor = userId === comment.authorId
+
+    // 初始化点赞状态
+    useEffect(() => {
+        if (userId && comment.likes) {
+            const userLike = comment.likes.find(like => like.userId === userId)
+            setIsLiked(!!userLike)
+        }
+    }, [userId, comment.likes])
 
     const handleReplyClick = () => {
         if (!session) return
@@ -193,6 +206,34 @@ export function CommentItem({
     const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {
         setEditedLexicalState(editorState)
         setEditedContentHtml(html)
+    }
+
+    const handleLike = async () => {
+        if (!session || isLiking) return
+
+        setIsLiking(true)
+        try {
+            const response = await fetch(`/api/comments/${comment.id}/like`, {
+                method: 'POST',
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || '操作失败')
+            }
+
+            const result = await response.json()
+
+            // 更新UI状态
+            setIsLiked(result.liked)
+            setLikeCount(result.likeCount)
+
+        } catch (error) {
+            logError('CommentItem', error, 'Like operation failed')
+            toast.error(error instanceof Error ? error.message : '点赞失败，请重试')
+        } finally {
+            setIsLiking(false)
+        }
     }
 
     // 阻止事件冒泡
@@ -350,11 +391,12 @@ export function CommentItem({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-muted-foreground hover:text-red-600"
-                                disabled={!session}
+                                className={`text-muted-foreground hover:text-red-600 ${isLiked ? 'text-red-600' : ''}`}
+                                onClick={handleLike}
+                                disabled={!session || isLiking}
                             >
-                                <Heart className="h-4 w-4 mr-1" />
-                                {comment._count.likes}
+                                <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
+                                {likeCount}
                             </Button>
                         </div>
                     )}
