@@ -1,36 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
-import { toast } from "sonner"
+import { MessageCircle, Loader2 } from "lucide-react"
 import LexicalRenderer from "../LexicalRenderer"
 import { RichTextEditor } from "../editor/RichTextEditor"
 import { ImagePreview } from "@/components/ui/ImagePreview"
 import { CommentForm } from "./CommentForm"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { logError } from '@/lib/debug'
-import type { CommentWithDetails } from "@/lib/types"
+import { UserInfo } from "@/components/ui/UserInfo"
+import { ActionMenu } from "@/components/ui/ActionMenu"
+import { DeleteDialog } from "@/components/ui/DeleteDialog"
 import { LikeUsersList } from "@/components/ui/LikeUsersList"
+import type { CommentWithDetails } from "@/lib/types"
+import { useLike } from "@/hooks/useLike"
+import { useEdit } from "@/hooks/useEdit"
+import { useDelete } from "@/hooks/useDelete"
 
 interface CommentItemProps {
     comment: CommentWithDetails
@@ -51,30 +37,56 @@ export function CommentItem({
     const userId = session?.user ? (session.user as { id: string }).id : undefined
 
     const [showReplyForm, setShowReplyForm] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
-    const [isUpdating, setIsUpdating] = useState(false)
-    const [isDeleting, setIsDeleting] = useState(false)
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [editedLexicalState, setEditedLexicalState] = useState<Record<string, unknown> | null>(comment.lexicalState)
-    const [editedContentHtml, setEditedContentHtml] = useState(comment.contentHtml || "")
-    const [editedImages, setEditedImages] = useState<string[]>(comment.images?.map(img => img.url) || [])
-
-    // 添加点赞相关状态
-    const [isLiked, setIsLiked] = useState(false)
-    const [likeCount, setLikeCount] = useState(comment._count.likes)
-    const [isLiking, setIsLiking] = useState(false)
-    const [likes, setLikes] = useState<{ id: string; userId: string; user: { id: string; name: string | null; username: string | null } }[]>(comment.likes || [])
 
     // 检查当前用户是否是评论作者
     const isAuthor = userId === comment.authorId
 
-    // 初始化点赞状态
-    useEffect(() => {
-        if (userId && comment.likes) {
-            const userLike = comment.likes.find(like => like.userId === userId)
-            setIsLiked(!!userLike)
-        }
-    }, [userId, comment.likes])
+    // 使用自定义 hooks
+    const {
+        isLiked,
+        likeCount,
+        isLiking,
+        likes,
+        handleLike,
+        canLike
+    } = useLike({
+        initialLikes: comment.likes || [],
+        initialCount: comment._count.likes,
+        entityId: comment.id,
+        entityType: 'comment'
+    })
+
+    const {
+        isEditing,
+        isUpdating,
+        editedContentHtml,
+        editedImages,
+        setEditedImages,
+        handleEditClick,
+        handleCancelEdit,
+        handleSaveEdit,
+        handleEditorChange,
+        hasChanges
+    } = useEdit<CommentWithDetails>({
+        entityId: comment.id,
+        entityType: 'comment',
+        initialLexicalState: comment.lexicalState,
+        initialContentHtml: comment.contentHtml || "",
+        initialImages: comment.images?.map(img => img.url) || [],
+        onUpdated: onCommentUpdated
+    })
+
+    const {
+        isDeleting,
+        showDeleteDialog,
+        setShowDeleteDialog,
+        handleDeleteClick,
+        handleDelete: performDelete
+    } = useDelete({
+        entityId: comment.id,
+        entityType: 'comment',
+        onDeleted: onCommentDeleted
+    })
 
     const handleReplyClick = () => {
         if (!session) return
@@ -89,170 +101,6 @@ export function CommentItem({
         setShowReplyForm(false)
         if (onReplyCreated) {
             onReplyCreated(newReply)
-        }
-    }
-
-    const handleEditClick = () => {
-        setIsEditing(true)
-    }
-
-    const handleCancelEdit = () => {
-        setIsEditing(false)
-        setEditedLexicalState(comment.lexicalState)
-        setEditedContentHtml(comment.contentHtml || "")
-        setEditedImages(comment.images?.map(img => img.url) || [])
-    }
-
-    const handleSaveEdit = async () => {
-        if (!session || isUpdating) return
-        if (!editedLexicalState && editedImages.length === 0) return
-
-        setIsUpdating(true)
-        try {
-            const response = await fetch(`/api/comments/${comment.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    lexicalState: editedLexicalState,
-                    contentHtml: editedContentHtml,
-                    imageUrls: editedImages,
-                }),
-            })
-
-            if (!response.ok) {
-                // 尝试解析错误响应
-                let errorMessage = '更新失败'
-                try {
-                    const errorData = await response.json()
-                    errorMessage = errorData.error || errorMessage
-                } catch {
-                    // 如果不是JSON响应（比如404 HTML页面），使用状态码提示
-                    if (response.status === 404) {
-                        errorMessage = '评论API接口不存在，请联系管理员'
-                    } else if (response.status === 403) {
-                        errorMessage = '没有权限编辑此评论'
-                    } else {
-                        errorMessage = `请求失败 (${response.status})`
-                    }
-                }
-                throw new Error(errorMessage)
-            }
-
-            const result = await response.json()
-            toast.success('评论已更新')
-            setIsEditing(false)
-
-            // 通知父组件更新数据
-            if (onCommentUpdated && result.comment) {
-                onCommentUpdated(result.comment)
-            }
-
-        } catch (error) {
-            logError('CommentItem', error, 'Update operation failed')
-            toast.error(error instanceof Error ? error.message : '更新失败，请重试')
-        } finally {
-            setIsUpdating(false)
-        }
-    }
-
-    const handleDeleteClick = () => {
-        setShowDeleteDialog(true)
-    }
-
-    const handleDelete = async () => {
-        if (!session || isDeleting) return
-
-        setIsDeleting(true)
-        try {
-            const response = await fetch(`/api/comments/${comment.id}`, {
-                method: 'DELETE',
-            })
-
-            if (!response.ok) {
-                // 尝试解析错误响应
-                let errorMessage = '删除失败'
-                try {
-                    const errorData = await response.json()
-                    errorMessage = errorData.error || errorMessage
-                } catch {
-                    // 如果不是JSON响应（比如404 HTML页面），使用状态码提示
-                    if (response.status === 404) {
-                        errorMessage = '评论API接口不存在，请联系管理员'
-                    } else if (response.status === 403) {
-                        errorMessage = '没有权限删除此评论'
-                    } else {
-                        errorMessage = `请求失败 (${response.status})`
-                    }
-                }
-                throw new Error(errorMessage)
-            }
-
-            toast.success('评论已删除')
-
-            // 通知父组件更新列表
-            if (onCommentDeleted) {
-                onCommentDeleted(comment.id)
-            }
-
-        } catch (error) {
-            logError('CommentItem', error, 'Delete operation failed')
-            toast.error(error instanceof Error ? error.message : '删除失败，请重试')
-        } finally {
-            setIsDeleting(false)
-            setShowDeleteDialog(false)
-        }
-    }
-
-    const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {
-        setEditedLexicalState(editorState)
-        setEditedContentHtml(html)
-    }
-
-    const handleLike = async () => {
-        if (!session || isLiking) return
-
-        setIsLiking(true)
-        try {
-            const response = await fetch(`/api/comments/${comment.id}/like`, {
-                method: 'POST',
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || '操作失败')
-            }
-
-            const result = await response.json()
-
-            // 更新UI状态
-            setIsLiked(result.liked)
-            setLikeCount(result.likeCount)
-
-            // 如果点赞，添加当前用户到点赞列表；如果取消点赞，从列表中移除
-            if (result.liked && session.user) {
-                const user = session.user as { id: string; name?: string | null; username?: string | null }
-                const newLike = {
-                    id: Date.now().toString(), // 临时ID
-                    userId: user.id,
-                    user: {
-                        id: user.id,
-                        name: user.name || null,
-                        username: user.username || null,
-                    }
-                }
-                setLikes(prev => [...prev, newLike])
-            } else {
-                const user = session.user as { id: string }
-                setLikes(prev => prev.filter(like => like.userId !== user.id))
-            }
-
-        } catch (error) {
-            logError('CommentItem', error, 'Like operation failed')
-            toast.error(error instanceof Error ? error.message : '点赞失败，请重试')
-        } finally {
-            setIsLiking(false)
         }
     }
 
@@ -273,55 +121,22 @@ export function CommentItem({
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                        <h4 className="font-semibold text-sm">
-                            {comment.author.name || "匿名用户"}
-                        </h4>
-                        <span className="text-muted-foreground text-sm">
-                            @{comment.author.name?.toLowerCase().replace(/\s+/g, '') || "user"}
-                        </span>
-                        <span className="text-muted-foreground text-sm">·</span>
-                        <span className="text-muted-foreground text-sm">
-                            {formatDistanceToNow(new Date(comment.createdAt), {
-                                addSuffix: true,
-                                locale: zhCN
-                            })}
-                        </span>
-
-                        {/* 如果是回复，显示回复对象 */}
-                        {comment.replyToUser && (
-                            <>
-                                <span className="text-muted-foreground text-sm">回复</span>
-                                <span className="text-blue-600 text-sm">
-                                    @{comment.replyToUser.name}
-                                </span>
-                            </>
-                        )}
+                        <UserInfo
+                            user={comment.author}
+                            createdAt={comment.createdAt}
+                            replyToUser={comment.replyToUser}
+                            size="sm"
+                            showAvatar={false}
+                        />
 
                         {/* 作者操作菜单 */}
                         {isAuthor && (
-                            <div className="ml-auto" onClick={stopPropagation}>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={handleEditClick}>
-                                            <Edit className="h-4 w-4 mr-2" />
-                                            编辑
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            variant="destructive"
-                                            onClick={handleDeleteClick}
-                                            disabled={isDeleting}
-                                        >
-                                            <Trash2 className="h-4 w-4 mr-2" />
-                                            {isDeleting ? '删除中...' : '删除'}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                            <ActionMenu
+                                onEdit={handleEditClick}
+                                onDelete={handleDeleteClick}
+                                isDeleting={isDeleting}
+                                stopPropagation={stopPropagation}
+                            />
                         )}
                     </div>
 
@@ -352,7 +167,7 @@ export function CommentItem({
                                             <Button
                                                 size="sm"
                                                 onClick={handleSaveEdit}
-                                                disabled={isUpdating || (!editedLexicalState && editedImages.length === 0)}
+                                                disabled={isUpdating || !hasChanges}
                                             >
                                                 {isUpdating ? (
                                                     <>
@@ -413,7 +228,7 @@ export function CommentItem({
                                 isLiked={isLiked}
                                 likeCount={likeCount}
                                 onLike={handleLike}
-                                disabled={!session || isLiking}
+                                disabled={!canLike || isLiking}
                                 variant="ghost"
                                 size="sm"
                                 onlyButton={true}
@@ -454,26 +269,13 @@ export function CommentItem({
             )}
 
             {/* 删除确认对话框 */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>确认删除评论</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            确定要删除这条评论吗？此操作无法撤销，评论的所有内容、图片和点赞都将被永久删除。
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-destructive text-white hover:bg-destructive/90"
-                        >
-                            {isDeleting ? '删除中...' : '确认删除'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={performDelete}
+                isDeleting={isDeleting}
+                entityType="comment"
+            />
         </div>
     )
 } 
