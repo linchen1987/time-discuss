@@ -3,19 +3,13 @@
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Layout } from "@/components/Layout"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, MessageCircle, Home, Settings } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
-import LexicalRenderer from "@/components/LexicalRenderer"
-import { ImagePreview } from "@/components/ui/ImagePreview"
+import { ArrowLeft, Home, Settings } from "lucide-react"
+import { ContentItem } from "@/components/ui/ContentItem"
 import { CommentList } from "@/components/comments/CommentList"
 import { CommentForm } from "@/components/comments/CommentForm"
-import { LikeUsersList } from "@/components/ui/LikeUsersList"
 import type { PostWithDetails, CommentWithDetails } from "@/lib/types"
 import { logError } from '@/lib/debug'
-import { useLike } from "@/hooks/useLike"
 
 export default function PostDetailsPage() {
     const router = useRouter()
@@ -26,21 +20,6 @@ export default function PostDetailsPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [comments, setComments] = useState<CommentWithDetails[]>([])
-
-    // 使用自定义 useLike hook
-    const {
-        isLiked,
-        likeCount,
-        isLiking,
-        likes,
-        handleLike,
-        canLike
-    } = useLike({
-        initialLikes: post?.likes || [],
-        initialCount: post?._count?.likes || 0,
-        entityId: postId,
-        entityType: 'post'
-    })
 
     // 获取帖子详情
     useEffect(() => {
@@ -82,6 +61,15 @@ export default function PostDetailsPage() {
         setComments(prev => [...prev, newComment])
     }
 
+    const handlePostDeleted = () => {
+        // 帖子被删除后返回首页
+        router.push('/')
+    }
+
+    const handlePostUpdated = (updatedPost: PostWithDetails) => {
+        setPost(updatedPost)
+    }
+
     if (loading) {
         return (
             <Layout title="帖子详情">
@@ -116,7 +104,7 @@ export default function PostDetailsPage() {
                     </div>
                     <div className="flex justify-between">
                         <span>点赞数：</span>
-                        <span>{likeCount}</span>
+                        <span>{post._count.likes}</span>
                     </div>
                     <div className="flex justify-between">
                         <span>发布时间：</span>
@@ -184,88 +172,14 @@ export default function PostDetailsPage() {
                         </div>
 
                         {/* 帖子内容 */}
-                        <div className="border-b border-border">
-                            <div className="p-4">
-                                <div className="flex space-x-3">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={post.author.avatarUrl || ""} />
-                                        <AvatarFallback>
-                                            {post.author.name?.charAt(0) || "U"}
-                                        </AvatarFallback>
-                                    </Avatar>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center space-x-2 mb-3">
-                                            <h2 className="font-semibold">
-                                                {post.author.name || "匿名用户"}
-                                            </h2>
-                                            <span className="text-muted-foreground text-sm">
-                                                @{post.author.username || post.author.name?.toLowerCase().replace(/\s+/g, '') || "user"}
-                                            </span>
-                                            <span className="text-muted-foreground text-sm">·</span>
-                                            <span className="text-muted-foreground text-sm">
-                                                {formatDistanceToNow(new Date(post.createdAt), {
-                                                    addSuffix: true,
-                                                    locale: zhCN
-                                                })}
-                                            </span>
-                                        </div>
-
-                                        {/* 帖子内容 */}
-                                        <div className="mb-4">
-                                            <LexicalRenderer
-                                                lexicalState={post.lexicalState}
-                                                contentHtml={post.contentHtml}
-                                                className="text-base whitespace-pre-wrap"
-                                            />
-                                        </div>
-
-                                        {/* 图片展示 */}
-                                        {post.images.length > 0 && (
-                                            <div className="mb-4">
-                                                <ImagePreview
-                                                    images={post.images.map(img => img.url)}
-                                                    showRemoveButton={false}
-                                                    onClick={(url) => window.open(url, '_blank')}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {/* 统计信息 */}
-                                        <div className="flex items-center space-x-6 mt-2 pt-1 border-t -ml-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-muted-foreground hover:text-blue-600"
-                                            >
-                                                <MessageCircle className="h-5 w-5 mr-2" />
-                                                {post._count.comments}
-                                            </Button>
-                                            <LikeUsersList
-                                                likes={likes}
-                                                isLiked={isLiked}
-                                                likeCount={likeCount}
-                                                onLike={handleLike}
-                                                disabled={!canLike || isLiking}
-                                                variant="ghost"
-                                                size="sm"
-                                                onlyButton={true}
-                                            />
-                                        </div>
-
-                                        {/* 点赞用户列表 */}
-                                        <div className="mt-0">
-                                            <LikeUsersList
-                                                likes={likes}
-                                                isLiked={isLiked}
-                                                likeCount={likeCount}
-                                                showInline={true}
-                                                onlyUsersList={true}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="border-b border-border p-4">
+                            <ContentItem
+                                content={post}
+                                type="post"
+                                onDeleted={handlePostDeleted}
+                                onUpdated={handlePostUpdated}
+                                className="text-base"
+                            />
                         </div>
 
                         {/* 评论表单 */}
@@ -299,89 +213,14 @@ export default function PostDetailsPage() {
                     </div>
 
                     {/* 帖子内容 */}
-                    <div className="border-b border-border">
-                        <div className="p-4">
-                            <div className="flex space-x-3">
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage src={post.author.avatarUrl || ""} />
-                                    <AvatarFallback>
-                                        {post.author.name?.charAt(0) || "U"}
-                                    </AvatarFallback>
-                                </Avatar>
-
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <h2 className="font-semibold">
-                                            {post.author.name || "匿名用户"}
-                                        </h2>
-                                        <span className="text-muted-foreground text-sm">
-                                            @{post.author.username || post.author.name?.toLowerCase().replace(/\s+/g, '') || "user"}
-                                        </span>
-                                        <span className="text-muted-foreground text-sm">·</span>
-                                        <span className="text-muted-foreground text-sm">
-                                            {formatDistanceToNow(new Date(post.createdAt), {
-                                                addSuffix: true,
-                                                locale: zhCN
-                                            })}
-                                        </span>
-                                    </div>
-
-                                    {/* 帖子内容 */}
-                                    <div className="mb-4">
-                                        <LexicalRenderer
-                                            lexicalState={post.lexicalState}
-                                            contentHtml={post.contentHtml}
-                                            className="text-base whitespace-pre-wrap"
-                                        />
-                                    </div>
-
-                                    {/* 图片展示 */}
-                                    {post.images.length > 0 && (
-                                        <div className="mb-4">
-                                            <ImagePreview
-                                                images={post.images.map(img => img.url)}
-                                                showRemoveButton={false}
-                                                onClick={(url) => window.open(url, '_blank')}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* 统计信息 */}
-                                    <div className="flex items-center space-x-6 mt-6 pt-1 border-t -ml-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-muted-foreground hover:text-blue-600"
-                                        >
-                                            <MessageCircle className="h-5 w-5 mr-2" />
-                                            {post._count.comments}
-                                        </Button>
-
-                                        <LikeUsersList
-                                            likes={likes}
-                                            isLiked={isLiked}
-                                            likeCount={likeCount}
-                                            onLike={handleLike}
-                                            disabled={!canLike || isLiking}
-                                            variant="ghost"
-                                            size="sm"
-                                            onlyButton={true}
-                                        />
-                                    </div>
-
-                                    {/* 点赞用户列表 */}
-                                    <div className="mt-0">
-                                        <LikeUsersList
-                                            likes={likes}
-                                            isLiked={isLiked}
-                                            likeCount={likeCount}
-                                            showInline={true}
-                                            onlyUsersList={true}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="border-b border-border p-4">
+                        <ContentItem
+                            content={post}
+                            type="post"
+                            onDeleted={handlePostDeleted}
+                            onUpdated={handlePostUpdated}
+                            className="text-base"
+                        />
                     </div>
 
                     {/* 评论表单 */}
