@@ -7,6 +7,7 @@ import { MobileNavigation } from "@/components/MobileNavigation"
 interface LayoutProps {
     children: ReactNode
     title?: string
+    titleContent?: ReactNode
     showRightSidebar?: boolean
     rightSidebarContent?: ReactNode
 }
@@ -14,9 +15,12 @@ interface LayoutProps {
 export function Layout({
     children,
     title = "页面",
+    titleContent,
     showRightSidebar = false,
     rightSidebarContent
 }: LayoutProps) {
+    const headerContent = titleContent || <h1 className="text-xl font-bold">{title}</h1>
+
     return (
         <div className="min-h-screen bg-background">
             {/* 桌面端布局 */}
@@ -30,7 +34,7 @@ export function Layout({
                     {/* 主内容区域 */}
                     <main className="flex-1 border-x border-border">
                         <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-40">
-                            <h1 className="text-xl font-bold">{title}</h1>
+                            {headerContent}
                         </div>
                         {children}
                     </main>
@@ -48,7 +52,7 @@ export function Layout({
             <div className="md:hidden">
                 <main className="pb-12"> {/* 底部留出导航栏空间 */}
                     <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-40">
-                        <h1 className="text-xl font-bold">{title}</h1>
+                        {headerContent}
                     </div>
                     {children}
                 </main>

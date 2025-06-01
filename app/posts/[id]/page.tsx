@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Layout } from "@/components/Layout"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Home, Settings } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { ContentItem } from "@/components/ui/ContentItem"
 import { CommentList } from "@/components/comments/CommentList"
 import { CommentForm } from "@/components/comments/CommentForm"
@@ -66,8 +66,12 @@ export default function PostDetailsPage() {
         router.push('/')
     }
 
-    const handlePostUpdated = (updatedPost: PostWithDetails) => {
-        setPost(updatedPost)
+    // 修复类型错误：明确处理 PostWithDetails 类型
+    const handlePostUpdated = (updated: PostWithDetails | CommentWithDetails) => {
+        // 确保更新的是帖子，而不是评论
+        if ('comments' in updated) {
+            setPost(updated as PostWithDetails)
+        }
     }
 
     if (loading) {
@@ -133,136 +137,36 @@ export default function PostDetailsPage() {
     )
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* 桌面端布局 */}
-            <div className="hidden md:block">
-                <div className="max-w-7xl mx-auto flex">
-                    {/* 左侧边栏 */}
-                    <div className="w-64 sticky top-0 h-screen overflow-y-auto">
-                        <div className="w-full p-4">
-                            <div className="space-y-4">
-                                {/* Logo */}
-                                <div className="px-3 py-2">
-                                    <h1 className="text-xl font-bold">朋友之家</h1>
-                                </div>
-
-                                {/* Navigation */}
-                                <nav className="space-y-4">
-                                    <div>
-                                        <Button variant="ghost" className="w-full justify-start items-center text-md cursor-pointer" size="lg" onClick={() => router.push('/')}>
-                                            <Home className="mr-2 size-5" />
-                                            首页
-                                        </Button>
-                                    </div>
-                                    <div>
-                                        <Button variant="ghost" className="w-full justify-start items-center text-md cursor-pointer" size="lg" onClick={() => router.push('/settings')}>
-                                            <Settings className="mr-2 size-5" />
-                                            设置
-                                        </Button>
-                                    </div>
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 主内容区域 */}
-                    <main className="flex-1 border-x border-border">
-                        <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-40">
-                            {customTitle}
-                        </div>
-
-                        {/* 帖子内容 */}
-                        <div className="border-b border-border p-4">
-                            <ContentItem
-                                content={post}
-                                type="post"
-                                onDeleted={handlePostDeleted}
-                                onUpdated={handlePostUpdated}
-                                className="text-base"
-                            />
-                        </div>
-
-                        {/* 评论表单 */}
-                        <div className="border-b border-border">
-                            <CommentForm
-                                postId={post.id}
-                                onCommentCreated={handleNewComment}
-                                placeholder="写下你的想法..."
-                            />
-                        </div>
-
-                        {/* 评论区域 */}
-                        <CommentList
-                            comments={comments}
-                            loading={false}
-                        />
-                    </main>
-
-                    {/* 右侧边栏 */}
-                    <div className="w-80 sticky top-0 h-screen overflow-y-auto hidden lg:block">
-                        {rightSidebarContent}
-                    </div>
-                </div>
+        <Layout
+            titleContent={customTitle}
+            showRightSidebar={true}
+            rightSidebarContent={rightSidebarContent}
+        >
+            {/* 帖子内容 */}
+            <div className="border-b border-border p-4">
+                <ContentItem
+                    content={post}
+                    type="post"
+                    onDeleted={handlePostDeleted}
+                    onUpdated={handlePostUpdated}
+                    className="text-base"
+                />
             </div>
 
-            {/* 移动端布局 */}
-            <div className="md:hidden">
-                <main className="pb-12">
-                    <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4 z-40">
-                        {customTitle}
-                    </div>
-
-                    {/* 帖子内容 */}
-                    <div className="border-b border-border p-4">
-                        <ContentItem
-                            content={post}
-                            type="post"
-                            onDeleted={handlePostDeleted}
-                            onUpdated={handlePostUpdated}
-                            className="text-base"
-                        />
-                    </div>
-
-                    {/* 评论表单 */}
-                    <div className="border-b border-border">
-                        <CommentForm
-                            postId={post.id}
-                            onCommentCreated={handleNewComment}
-                            placeholder="写下你的想法..."
-                        />
-                    </div>
-
-                    {/* 评论区域 */}
-                    <CommentList
-                        comments={comments}
-                        loading={false}
-                    />
-                </main>
-
-                {/* 移动端底部导航 */}
-                <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 md:hidden">
-                    <nav className="flex justify-center">
-                        <div className="flex items-center justify-center gap-6 w-full max-w-md py-2">
-                            <Button
-                                variant="ghost"
-                                className="flex flex-col items-center justify-center p-2 transition-colors text-muted-foreground hover:text-foreground"
-                                onClick={() => router.push('/')}
-                            >
-                                <Home className="h-5 w-5 mb-0.5" />
-                                <span className="text-xs font-medium">首页</span>
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                className="flex flex-col items-center justify-center p-2 transition-colors text-muted-foreground hover:text-foreground"
-                                onClick={() => router.push('/settings')}
-                            >
-                                <Settings className="h-5 w-5 mb-0.5" />
-                                <span className="text-xs font-medium">设置</span>
-                            </Button>
-                        </div>
-                    </nav>
-                </div>
+            {/* 评论表单 */}
+            <div className="border-b border-border">
+                <CommentForm
+                    postId={post.id}
+                    onCommentCreated={handleNewComment}
+                    placeholder="写下你的想法..."
+                />
             </div>
-        </div>
+
+            {/* 评论区域 */}
+            <CommentList
+                comments={comments}
+                loading={false}
+            />
+        </Layout>
     )
 } 
