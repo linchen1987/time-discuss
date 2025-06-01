@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#grad1)" rx="102.4"/>
+  <circle cx="256" cy="179.2" r="61.44" fill="white"/>
+  <path d="M 128 281.6 Q 256 384 384 281.6" 
+        stroke="white" stroke-width="20.48" fill="none" stroke-linecap="round"/>
+  <text x="256" y="460.8" text-anchor="middle" fill="white" 
+        font-family="Arial, sans-serif" font-size="40.96" font-weight="bold">朋友</text>
+</svg>
