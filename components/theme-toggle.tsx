@@ -4,8 +4,28 @@ import * as React from "react"
 import { Moon, Sun, Monitor } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
-export function ThemeToggle() {
+// 主题配置
+const THEME_CONFIG = [
+    {
+        value: "light" as const,
+        label: "浅色",
+        icon: Sun,
+    },
+    {
+        value: "dark" as const,
+        label: "深色",
+        icon: Moon,
+    },
+    {
+        value: "system" as const,
+        label: "自动",
+        icon: Monitor,
+    },
+] as const
+
+export function ThemeToggle({ className }: { className?: string }) {
     const { setTheme, theme } = useTheme()
     const [mounted, setMounted] = React.useState(false)
 
@@ -14,126 +34,47 @@ export function ThemeToggle() {
         setMounted(true)
     }, [])
 
-    const getCurrentIcon = () => {
-        if (!mounted) {
-            return <Monitor className="h-4 w-4" />
-        }
-
-        switch (theme) {
-            case "light":
-                return <Sun className="h-4 w-4" />
-            case "dark":
-                return <Moon className="h-4 w-4" />
-            case "system":
-                return <Monitor className="h-4 w-4" />
-            default:
-                return <Monitor className="h-4 w-4" />
-        }
-    }
-
     const getCurrentLabel = () => {
         if (!mounted) {
             return "主题设置"
         }
 
-        switch (theme) {
-            case "light":
-                return "浅色模式"
-            case "dark":
-                return "深色模式"
-            case "system":
-                return "跟随系统"
-            default:
-                return "跟随系统"
-        }
+        const currentTheme = THEME_CONFIG.find(config => config.value === theme)
+        return currentTheme?.label || "自动"
     }
 
-    // 如果还没有挂载，显示一个不依赖主题状态的版本
-    if (!mounted) {
-        return (
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                {/* 左边：当前主题状态 */}
-                <div className="flex items-center space-x-3 pl-1">
-                    <Monitor className="h-4 w-4" />
-                    <span className="ml-2 text-sm font-medium">主题设置</span>
-                </div>
+    // 使用 useMemo 缓存主题按钮，只在相关依赖项变化时重新计算
+    const themeButtons = React.useMemo(() => (
+        <div className="flex items-center space-x-1">
+            {THEME_CONFIG.map((config) => {
+                const Icon = config.icon
+                const isActive = mounted && theme === config.value
 
-                {/* 右边：三个主题选择按钮 */}
-                <div className="flex items-center space-x-0.5">
+                return (
                     <Button
-                        variant="ghost"
+                        key={config.value}
+                        variant={isActive ? "secondary" : "ghost"}
                         size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setTheme("light")}
-                        title="浅色模式"
+                        className="h-8 w-8 p-1.5 hover:bg-muted/80 transition-colors duration-200"
+                        onClick={() => setTheme(config.value)}
+                        title={config.label}
                     >
-                        <Sun className="h-3 w-3" />
+                        <Icon className="h-4 w-4" />
                     </Button>
-
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setTheme("dark")}
-                        title="深色模式"
-                    >
-                        <Moon className="h-3 w-3" />
-                    </Button>
-
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setTheme("system")}
-                        title="跟随系统"
-                    >
-                        <Monitor className="h-3 w-3" />
-                    </Button>
-                </div>
-            </div>
-        )
-    }
+                )
+            })}
+        </div>
+    ), [mounted, theme, setTheme])
 
     return (
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+        <div className={cn("flex items-center justify-between p-3 rounded-lg transition-colors", className)}>
             {/* 左边：当前主题状态 */}
             <div className="flex items-center space-x-3 pl-1">
-                {getCurrentIcon()}
-                <span className="ml-2 text-sm font-medium">{getCurrentLabel()}</span>
+                <span className="mr-2 text-md font-medium">{getCurrentLabel()}</span>
             </div>
 
             {/* 右边：三个主题选择按钮 */}
-            <div className="flex items-center space-x-0.5">
-                <Button
-                    variant={theme === "light" ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => setTheme("light")}
-                    title="浅色模式"
-                >
-                    <Sun className="h-3 w-3" />
-                </Button>
-
-                <Button
-                    variant={theme === "dark" ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => setTheme("dark")}
-                    title="深色模式"
-                >
-                    <Moon className="h-3 w-3" />
-                </Button>
-
-                <Button
-                    variant={theme === "system" ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => setTheme("system")}
-                    title="跟随系统"
-                >
-                    <Monitor className="h-3 w-3" />
-                </Button>
-            </div>
+            {themeButtons}
         </div>
     )
 } 
