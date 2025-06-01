@@ -80,7 +80,7 @@ export function EditorToolbar({
     return (
         <>
             <div className={`flex items-center justify-between ${className}`}>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-0">
                     {/* 加粗按钮 */}
                     {showBold && onBoldFormat && (
                         <Button
@@ -90,7 +90,7 @@ export function EditorToolbar({
                             onClick={onBoldFormat}
                             className={`text-blue-500 hover:text-blue-600 ${isBold ? 'bg-blue-100' : ''}`}
                         >
-                            <Bold className="w-5 h-5" />
+                            <Bold className="w-5 h-5 stroke-2" />
                         </Button>
                     )}
 
@@ -116,7 +116,7 @@ export function EditorToolbar({
                                 {isUploading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
-                                    <ImagePlus className="w-5 h-5" />
+                                    <ImagePlus className="w-5 h-5 stroke-2" />
                                 )}
                             </Button>
                         </>
@@ -132,7 +132,7 @@ export function EditorToolbar({
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                             className="text-blue-500 hover:text-blue-600"
                         >
-                            <Smile className="w-5 h-5" />
+                            <Smile className="w-5 h-5 stroke-2" />
                         </Button>
                     )}
 

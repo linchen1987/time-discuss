@@ -81,19 +81,16 @@ export function RichTextEditor({
         post: {
             maxImages: 9,
             showFullToolbar: true,
-            compactMode: false,
             minHeight: '100px',
         },
         comment: {
             maxImages: 4,
             showFullToolbar: true,
-            compactMode: true,
             minHeight: '80px',
         },
         reply: {
             maxImages: 4, // 回复时也支持图片，和comment模式一样
             showFullToolbar: true, // 显示完整工具栏
-            compactMode: true,
             minHeight: '60px',
         }
     }
@@ -197,7 +194,7 @@ export function RichTextEditor({
                     onCancel={onCancel}
                     cancelText={cancelText}
                     customActions={customActions}
-                    className={`mt-4 p-4 border-t ${config.compactMode ? 'py-2' : ''}`}
+                    className={`mt-4 py-2 border-t`}
                 />
             )}
         </div>

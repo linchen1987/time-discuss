@@ -64,8 +64,8 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     if (!session) return null
 
     return (
-        <div className="border-b border-border">
-            <div className="p-4">
+        <div className="">
+            <div className="p-4 pb-0">
                 <div className="flex space-x-3">
                     <Avatar>
                         <AvatarImage src={user?.avatarUrl || ""} />
