@@ -8,148 +8,166 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 用户表 - 支持用户名/密码登录和 OAuth 登录
+// 存储用户基本信息（用户名、邮箱、姓名、头像）
+// 兼容 NextAuth.js 认证系统
 model User {
-  id                String             @id @default(cuid())
-  username          String?            @unique
-  email             String?            @unique
-  hashedPassword    String?
-  name              String?
-  avatarUrl         String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  accounts          Account[]
-  commentLikes      CommentLike[]
-  comments          Comment[]
-  repliedComments   Comment[]          @relation("CommentReplyTo")
-  likes             Like[]
-  notifications     Notification[]     @relation("UserNotification")
-  posts             Post[]
-  pushSubscriptions PushSubscription[]
-  sessions          Session[]
+  id                String             @id @default(cuid()) // 用户唯一标识
+  username          String?            @unique // 用户名，可选（支持OAuth登录）
+  email             String?            @unique // 邮箱，可选（适应不同登录方式）
+  hashedPassword    String? // 密码哈希值（OAuth用户可能没有）
+  name              String? // 用户显示名称
+  avatarUrl         String? // 用户头像URL
+  createdAt         DateTime           @default(now()) // 创建时间
+  updatedAt         DateTime           @updatedAt // 更新时间
+  accounts          Account[] // OAuth账户关联
+  commentLikes      CommentLike[] // 评论点赞记录
+  comments          Comment[] // 发表的评论
+  repliedComments   Comment[]          @relation("CommentReplyTo") // 被回复的评论
+  likes             Like[] // 帖子点赞记录
+  notifications     Notification[]     @relation("UserNotification") // 接收的通知
+  posts             Post[] // 发表的帖子
+  pushSubscriptions PushSubscription[] // PWA推送订阅
+  sessions          Session[] // 用户会话
 
   @@map("users")
 }
 
+// NextAuth.js OAuth账户信息表
 model Account {
   id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+  userId            String // 关联用户ID
+  type              String // 账户类型
+  provider          String // OAuth提供商（如google、github）
+  providerAccountId String // 提供商账户ID
+  refresh_token     String? // 刷新令牌
+  access_token      String? // 访问令牌
+  expires_at        Int? // 令牌过期时间
+  token_type        String? // 令牌类型
+  scope             String? // 授权范围
+  id_token          String? // ID令牌
+  session_state     String? // 会话状态
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
 
+// NextAuth.js 用户会话管理表
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
+  sessionToken String   @unique // 会话令牌
+  userId       String // 关联用户ID
+  expires      DateTime // 会话过期时间
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
 
+// 帖子表 - 存储 Lexical 编辑器的 JSON 状态
+// 支持富文本内容和 HTML 备份
+// 关联图片和互动数据
 model Post {
-  id            String         @id @default(cuid())
-  authorId      String
-  lexicalState  Json
-  contentHtml   String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  comments      Comment[]
-  likes         Like[]
-  notifications Notification[] @relation("PostNotification")
-  images        PostImage[]
+  id            String         @id @default(cuid()) // 帖子唯一标识
+  authorId      String // 作者用户ID
+  lexicalState  Json // Lexical编辑器JSON状态（支持富文本、链接、格式化等）
+  contentHtml   String? // HTML备份版本用于展示
+  createdAt     DateTime       @default(now()) // 创建时间
+  updatedAt     DateTime       @updatedAt // 更新时间
+  comments      Comment[] // 帖子评论
+  likes         Like[] // 帖子点赞
+  notifications Notification[] @relation("PostNotification") // 相关通知
+  images        PostImage[] // 关联图片
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("posts")
 }
 
+// 图片表 - 存储帖子关联的图片 URL
+// 支持图片描述和元数据
 model PostImage {
-  id         String   @id @default(cuid())
-  url        String
-  altText    String?
-  postId     String
-  uploadedAt DateTime @default(now())
+  id         String   @id @default(cuid()) // 图片唯一标识
+  url        String // 图片URL
+  altText    String? // 图片描述文本
+  postId     String // 关联帖子ID
+  uploadedAt DateTime @default(now()) // 上传时间
   post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("post_images")
 }
 
+// 评论表 - 支持对帖子的评论功能
+// 纯文本格式，简化初期实现
 model Comment {
-  id            String         @id @default(cuid())
-  content       String
-  authorId      String
-  postId        String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  contentHtml   String?
-  lexicalState  Json?
-  replyToUserId String?
-  images        CommentImage[]
-  likes         CommentLike[]
+  id            String         @id @default(cuid()) // 评论唯一标识
+  content       String // 评论内容（纯文本）
+  authorId      String // 评论作者ID
+  postId        String // 关联帖子ID
+  createdAt     DateTime       @default(now()) // 创建时间
+  updatedAt     DateTime       @updatedAt // 更新时间
+  contentHtml   String? // HTML版本内容
+  lexicalState  Json? // Lexical编辑器状态（可选）
+  replyToUserId String? // 回复的用户ID
+  images        CommentImage[] // 评论图片
+  likes         CommentLike[] // 评论点赞
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   replyToUser   User?          @relation("CommentReplyTo", fields: [replyToUserId], references: [id])
-  notifications Notification[] @relation("CommentNotification")
+  notifications Notification[] @relation("CommentNotification") // 相关通知
 
   @@map("comments")
 }
 
+// 评论图片表
 model CommentImage {
-  id         String   @id @default(cuid())
-  url        String
-  altText    String?
-  commentId  String
-  uploadedAt DateTime @default(now())
+  id         String   @id @default(cuid()) // 图片唯一标识
+  url        String // 图片URL
+  altText    String? // 图片描述
+  commentId  String // 关联评论ID
+  uploadedAt DateTime @default(now()) // 上传时间
   comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@map("comment_images")
 }
 
+// 评论点赞表
 model CommentLike {
-  id        String   @id @default(cuid())
-  userId    String
-  commentId String
-  createdAt DateTime @default(now())
+  id        String   @id @default(cuid()) // 点赞记录ID
+  userId    String // 点赞用户ID
+  commentId String // 被点赞评论ID
+  createdAt DateTime @default(now()) // 点赞时间
   comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, commentId])
+  @@unique([userId, commentId]) // 防止重复点赞
   @@map("comment_likes")
 }
 
+// 点赞表 - 用户对帖子的点赞记录
+// 唯一约束防止重复点赞
 model Like {
-  id        String   @id @default(cuid())
-  userId    String
-  postId    String
-  createdAt DateTime @default(now())
+  id        String   @id @default(cuid()) // 点赞记录ID
+  userId    String // 点赞用户ID
+  postId    String // 被点赞帖子ID
+  createdAt DateTime @default(now()) // 点赞时间
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, postId])
+  @@unique([userId, postId]) // 防止重复点赞
   @@map("likes")
 }
 
+// 通知表 - 支持评论、点赞、提及等通知类型
+// 已读/未读状态管理
 model Notification {
-  id          String   @id @default(cuid())
-  recipientId String
-  actorId     String?
-  type        String
-  postId      String?
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  commentId   String?
+  id          String   @id @default(cuid()) // 通知唯一标识
+  recipientId String // 接收通知的用户ID
+  actorId     String? // 触发通知的用户ID（可选）
+  type        String // 通知类型（评论、点赞、提及等）
+  postId      String? // 相关帖子ID（可选）
+  read        Boolean  @default(false) // 已读状态
+  createdAt   DateTime @default(now()) // 创建时间
+  commentId   String? // 相关评论ID（可选）
   comment     Comment? @relation("CommentNotification", fields: [commentId], references: [id], onDelete: Cascade)
   post        Post?    @relation("PostNotification", fields: [postId], references: [id], onDelete: Cascade)
   recipient   User     @relation("UserNotification", fields: [recipientId], references: [id], onDelete: Cascade)
@@ -157,22 +175,25 @@ model Notification {
   @@map("notifications")
 }
 
+// 推送订阅表 - PWA 推送通知订阅信息
+// VAPID 密钥存储
 model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  createdAt DateTime @default(now())
+  id        String   @id @default(cuid()) // 订阅唯一标识
+  userId    String // 用户ID
+  endpoint  String   @unique // 推送端点URL
+  p256dh    String // P256DH密钥
+  auth      String // 认证密钥
+  createdAt DateTime @default(now()) // 创建时间
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("push_subscriptions")
 }
 
+// NextAuth.js 邮箱验证和密码重置令牌表
 model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+  identifier String // 标识符（通常是邮箱）
+  token      String   @unique // 验证令牌
+  expires    DateTime // 过期时间
 
   @@unique([identifier, token])
   @@map("verification_tokens")
