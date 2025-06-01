@@ -153,9 +153,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
               },
             },
             likes: {
-              select: {
-                id: true,
-                userId: true,
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                  },
+                },
               },
             },
             _count: {

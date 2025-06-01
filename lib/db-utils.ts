@@ -407,9 +407,14 @@ export const commentOperations = {
           },
         },
         likes: {
-          select: {
-            id: true,
-            userId: true,
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
           },
         },
         _count: {

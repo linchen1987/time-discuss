@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
+import { MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import { toast } from "sonner"
@@ -30,6 +30,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { logError } from '@/lib/debug'
+import { LikeUsersList } from "@/components/ui/LikeUsersList"
 
 interface PostCardProps {
     post: PostWithDetails
@@ -45,6 +46,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
     const [isLiked, setIsLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(post._count.likes)
     const [isLiking, setIsLiking] = useState(false)
+    const [likes, setLikes] = useState<{ id: string; userId: string; user: { id: string; name: string | null; username: string | null } }[]>(post.likes || [])
     const [isDeleting, setIsDeleting] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
@@ -97,6 +99,24 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             // 更新UI状态
             setIsLiked(result.liked)
             setLikeCount(prev => result.liked ? prev + 1 : prev - 1)
+
+            // 如果点赞，添加当前用户到点赞列表；如果取消点赞，从列表中移除
+            if (result.liked && session.user) {
+                const user = session.user as { id: string; name?: string | null; username?: string | null }
+                const newLike = {
+                    id: Date.now().toString(), // 临时ID
+                    userId: user.id,
+                    user: {
+                        id: user.id,
+                        name: user.name || null,
+                        username: user.username || null,
+                    }
+                }
+                setLikes(prev => [...prev, newLike])
+            } else {
+                const user = session.user as { id: string }
+                setLikes(prev => prev.filter(like => like.userId !== user.id))
+            }
 
         } catch (error) {
             logError('PostCard', error, 'Like operation failed')
@@ -323,17 +343,28 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                                 {post._count.comments}
                             </Button>
 
-                            <Button
+                            <LikeUsersList
+                                likes={likes}
+                                isLiked={isLiked}
+                                likeCount={likeCount}
+                                onLike={handleLike}
+                                disabled={isLiking || !session}
                                 variant="ghost"
                                 size="sm"
-                                className={`text-muted-foreground hover:text-red-600 ${isLiked ? "text-red-600" : ""
-                                    }`}
-                                onClick={handleLike}
-                                disabled={isLiking || !session}
-                            >
-                                <Heart className={`h-4 w-4 mr-1 ${isLiked ? "fill-current" : ""}`} />
-                                {likeCount}
-                            </Button>
+                                onlyButton={true}
+                            />
+                        </div>
+
+                        {/* 点赞用户列表 */}
+                        <div className="mt-2" onClick={stopPropagation}>
+                            <LikeUsersList
+                                likes={likes}
+                                isLiked={isLiked}
+                                likeCount={likeCount}
+                                showInline={true}
+                                onlyUsersList={true}
+                                className="pl-2"
+                            />
                         </div>
                     </div>
                 </div>

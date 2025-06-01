@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
+import { MessageCircle, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import { toast } from "sonner"
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { logError } from '@/lib/debug'
 import type { CommentWithDetails } from "@/lib/types"
+import { LikeUsersList } from "@/components/ui/LikeUsersList"
 
 interface CommentItemProps {
     comment: CommentWithDetails
@@ -62,6 +63,7 @@ export function CommentItem({
     const [isLiked, setIsLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(comment._count.likes)
     const [isLiking, setIsLiking] = useState(false)
+    const [likes, setLikes] = useState<{ id: string; userId: string; user: { id: string; name: string | null; username: string | null } }[]>(comment.likes || [])
 
     // 检查当前用户是否是评论作者
     const isAuthor = userId === comment.authorId
@@ -228,6 +230,24 @@ export function CommentItem({
             setIsLiked(result.liked)
             setLikeCount(result.likeCount)
 
+            // 如果点赞，添加当前用户到点赞列表；如果取消点赞，从列表中移除
+            if (result.liked && session.user) {
+                const user = session.user as { id: string; name?: string | null; username?: string | null }
+                const newLike = {
+                    id: Date.now().toString(), // 临时ID
+                    userId: user.id,
+                    user: {
+                        id: user.id,
+                        name: user.name || null,
+                        username: user.username || null,
+                    }
+                }
+                setLikes(prev => [...prev, newLike])
+            } else {
+                const user = session.user as { id: string }
+                setLikes(prev => prev.filter(like => like.userId !== user.id))
+            }
+
         } catch (error) {
             logError('CommentItem', error, 'Like operation failed')
             toast.error(error instanceof Error ? error.message : '点赞失败，请重试')
@@ -376,7 +396,7 @@ export function CommentItem({
 
                     {/* 操作按钮 */}
                     {!isEditing && (
-                        <div className="flex items-center space-x-4 mt-3">
+                        <div className="flex items-center space-x-4 mt-3 -ml-2">
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -388,16 +408,29 @@ export function CommentItem({
                                 回复
                             </Button>
 
-                            <Button
+                            <LikeUsersList
+                                likes={likes}
+                                isLiked={isLiked}
+                                likeCount={likeCount}
+                                onLike={handleLike}
+                                disabled={!session || isLiking}
                                 variant="ghost"
                                 size="sm"
-                                className={`text-muted-foreground hover:text-red-600 ${isLiked ? 'text-red-600' : ''}`}
-                                onClick={handleLike}
-                                disabled={!session || isLiking}
-                            >
-                                <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-                                {likeCount}
-                            </Button>
+                                onlyButton={true}
+                            />
+                        </div>
+                    )}
+
+                    {/* 点赞用户列表 */}
+                    {!isEditing && (
+                        <div className="mt-0">
+                            <LikeUsersList
+                                likes={likes}
+                                isLiked={isLiked}
+                                likeCount={likeCount}
+                                showInline={true}
+                                onlyUsersList={true}
+                            />
                         </div>
                     )}
                 </div>

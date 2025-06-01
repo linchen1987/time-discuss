@@ -145,6 +145,11 @@ export interface CommentWithDetails {
   likes: {
     id: string;
     userId: string;
+    user: {
+      id: string;
+      name: string | null;
+      username: string | null;
+    };
   }[];
 
   // 计算字段

@@ -6,13 +6,14 @@ import { useRouter, useParams } from "next/navigation"
 import { Layout } from "@/components/Layout"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Heart, MessageCircle, Home, Settings } from "lucide-react"
+import { ArrowLeft, MessageCircle, Home, Settings } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import LexicalRenderer from "@/components/LexicalRenderer"
 import { ImagePreview } from "@/components/ui/ImagePreview"
 import { CommentList } from "@/components/comments/CommentList"
 import { CommentForm } from "@/components/comments/CommentForm"
+import { LikeUsersList } from "@/components/ui/LikeUsersList"
 import type { PostWithDetails, CommentWithDetails } from "@/lib/types"
 import { logError } from '@/lib/debug'
 
@@ -21,11 +22,18 @@ export default function PostDetailsPage() {
     const router = useRouter()
     const params = useParams()
     const postId = params.id as string
+    const userId = session?.user ? (session.user as { id: string }).id : undefined
 
     const [post, setPost] = useState<PostWithDetails | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [comments, setComments] = useState<CommentWithDetails[]>([])
+
+    // 点赞相关状态
+    const [isLiked, setIsLiked] = useState(false)
+    const [likeCount, setLikeCount] = useState(0)
+    const [isLiking, setIsLiking] = useState(false)
+    const [likes, setLikes] = useState<{ id: string; userId: string; user: { id: string; name: string | null; username: string | null } }[]>([])
 
     // 获取帖子详情
     useEffect(() => {
@@ -44,6 +52,14 @@ export default function PostDetailsPage() {
 
                 const postData = await response.json()
                 setPost(postData)
+                setLikeCount(postData._count.likes)
+                setLikes(postData.likes || [])
+
+                // 检查当前用户是否点赞
+                if (userId && postData.likes) {
+                    const userLike = postData.likes.find((like: { userId: string }) => like.userId === userId)
+                    setIsLiked(!!userLike)
+                }
 
                 // 设置评论数据
                 if (postData.comments) {
@@ -61,7 +77,53 @@ export default function PostDetailsPage() {
         if (postId) {
             fetchPost()
         }
-    }, [postId])
+    }, [postId, userId])
+
+    const handleLike = async () => {
+        if (!session || isLiking) return
+
+        setIsLiking(true)
+        try {
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || '操作失败')
+            }
+
+            const result = await response.json()
+
+            // 更新UI状态
+            setIsLiked(result.liked)
+            setLikeCount(prev => result.liked ? prev + 1 : prev - 1)
+
+            // 如果点赞，添加当前用户到点赞列表；如果取消点赞，从列表中移除
+            if (result.liked && session.user) {
+                const user = session.user as { id: string; name?: string | null; username?: string | null }
+                const newLike = {
+                    id: Date.now().toString(), // 临时ID
+                    userId: user.id,
+                    user: {
+                        id: user.id,
+                        name: user.name || null,
+                        username: user.username || null,
+                    }
+                }
+                setLikes(prev => [...prev, newLike])
+            } else {
+                const user = session.user as { id: string }
+                setLikes(prev => prev.filter(like => like.userId !== user.id))
+            }
+
+        } catch (error) {
+            logError('PostDetailsPage', error, 'Like operation failed')
+            console.error('点赞失败:', error)
+        } finally {
+            setIsLiking(false)
+        }
+    }
 
     const handleNewComment = (newComment: CommentWithDetails) => {
         setComments(prev => [...prev, newComment])
@@ -217,7 +279,7 @@ export default function PostDetailsPage() {
                                         )}
 
                                         {/* 统计信息 */}
-                                        <div className="flex items-center space-x-6 mt-6 pt-4 border-t">
+                                        <div className="flex items-center space-x-6 mt-2 pt-1 border-t -ml-2">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -226,16 +288,27 @@ export default function PostDetailsPage() {
                                                 <MessageCircle className="h-5 w-5 mr-2" />
                                                 {post._count.comments}
                                             </Button>
-
-                                            <Button
+                                            <LikeUsersList
+                                                likes={likes}
+                                                isLiked={isLiked}
+                                                likeCount={likeCount}
+                                                onLike={handleLike}
+                                                disabled={!session || isLiking}
                                                 variant="ghost"
                                                 size="sm"
-                                                className="text-muted-foreground hover:text-red-600"
-                                                disabled={!session}
-                                            >
-                                                <Heart className="h-5 w-5 mr-2" />
-                                                {post._count.likes}
-                                            </Button>
+                                                onlyButton={true}
+                                            />
+                                        </div>
+
+                                        {/* 点赞用户列表 */}
+                                        <div className="mt-0">
+                                            <LikeUsersList
+                                                likes={likes}
+                                                isLiked={isLiked}
+                                                likeCount={likeCount}
+                                                showInline={true}
+                                                onlyUsersList={true}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -321,7 +394,7 @@ export default function PostDetailsPage() {
                                     )}
 
                                     {/* 统计信息 */}
-                                    <div className="flex items-center space-x-6 mt-6 pt-4 border-t">
+                                    <div className="flex items-center space-x-6 mt-6 pt-1 border-t -ml-2">
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -331,15 +404,27 @@ export default function PostDetailsPage() {
                                             {post._count.comments}
                                         </Button>
 
-                                        <Button
+                                        <LikeUsersList
+                                            likes={likes}
+                                            isLiked={isLiked}
+                                            likeCount={likeCount}
+                                            onLike={handleLike}
+                                            disabled={!session || isLiking}
                                             variant="ghost"
                                             size="sm"
-                                            className="text-muted-foreground hover:text-red-600"
-                                            disabled={!session}
-                                        >
-                                            <Heart className="h-5 w-5 mr-2" />
-                                            {post._count.likes}
-                                        </Button>
+                                            onlyButton={true}
+                                        />
+                                    </div>
+
+                                    {/* 点赞用户列表 */}
+                                    <div className="mt-0">
+                                        <LikeUsersList
+                                            likes={likes}
+                                            isLiked={isLiked}
+                                            likeCount={likeCount}
+                                            showInline={true}
+                                            onlyUsersList={true}
+                                        />
                                     </div>
                                 </div>
                             </div>
