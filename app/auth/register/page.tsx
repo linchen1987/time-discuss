@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -92,158 +97,146 @@ export default function RegisterPage() {
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-md w-full space-y-8">
-                    <div className="text-center">
-                        <div className="mx-auto h-12 w-12 text-green-600">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+            <div className="min-h-screen flex items-center justify-center bg-background p-4">
+                <Card className="w-full max-w-md">
+                    <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-foreground">
+                                    注册成功！
+                                </h2>
+                                <p className="text-muted-foreground mt-2">
+                                    即将跳转到登录页面...
+                                </p>
+                            </div>
                         </div>
-                        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                            注册成功！
-                        </h2>
-                        <p className="mt-2 text-center text-sm text-gray-600">
-                            即将跳转到登录页面...
-                        </p>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold text-center">
                         注册朋友之家
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    </CardTitle>
+                    <CardDescription className="text-center">
                         已有账号？{' '}
-                        <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                        <Link href="/auth/login" className="text-primary hover:underline">
                             立即登录
                         </Link>
-                    </p>
-                </div>
-
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                                用户名 *
-                            </label>
-                            <input
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="flex flex-col space-y-3">
+                            <Label htmlFor="username">
+                                ID <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
                                 id="username"
                                 name="username"
                                 type="text"
                                 required
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${getFieldError('username') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                    }`}
-                                placeholder="请输入用户名"
+                                placeholder="用于登录，可输入手机、邮箱、或任意 ID"
                                 value={formData.username}
                                 onChange={handleChange}
+                                className={getFieldError('username') ? 'border-destructive focus-visible:ring-destructive/20' : ''}
                             />
                             {getFieldError('username') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('username')}</p>
+                                <p className="text-sm text-destructive">{getFieldError('username')}</p>
                             )}
                         </div>
 
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                                姓名
-                            </label>
-                            <input
+                        <div className="flex flex-col flex flex-col space-y-3">
+                            <Label htmlFor="name">昵称</Label>
+                            <Input
                                 id="name"
                                 name="name"
                                 type="text"
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${getFieldError('name') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                    }`}
-                                placeholder="请输入姓名（可选）"
+                                placeholder="请输入昵称（可修改）"
                                 value={formData.name}
                                 onChange={handleChange}
+                                className={getFieldError('name') ? 'border-destructive focus-visible:ring-destructive/20' : ''}
                             />
                             {getFieldError('name') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('name')}</p>
+                                <p className="text-sm text-destructive">{getFieldError('name')}</p>
                             )}
                         </div>
 
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                邮箱
-                            </label>
-                            <input
+                        <div className="flex flex-col space-y-3" style={{ display: 'none' }}>
+                            <Label htmlFor="email">邮箱</Label>
+                            <Input
                                 id="email"
                                 name="email"
                                 type="email"
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${getFieldError('email') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                    }`}
                                 placeholder="请输入邮箱（可选）"
                                 value={formData.email}
                                 onChange={handleChange}
+                                className={getFieldError('email') ? 'border-destructive focus-visible:ring-destructive/20' : ''}
                             />
                             {getFieldError('email') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('email')}</p>
+                                <p className="text-sm text-destructive">{getFieldError('email')}</p>
                             )}
                         </div>
 
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                密码 *
-                            </label>
-                            <input
+                        <div className="flex flex-col space-y-3">
+                            <Label htmlFor="password">
+                                密码 <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
                                 id="password"
                                 name="password"
                                 type="password"
                                 required
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${getFieldError('password') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                    }`}
                                 placeholder="请输入密码"
                                 value={formData.password}
                                 onChange={handleChange}
+                                className={getFieldError('password') ? 'border-destructive focus-visible:ring-destructive/20' : ''}
                             />
                             {getFieldError('password') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('password')}</p>
+                                <p className="text-sm text-destructive">{getFieldError('password')}</p>
                             )}
                         </div>
 
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                                确认密码 *
-                            </label>
-                            <input
+                        <div className="flex flex-col space-y-3">
+                            <Label htmlFor="confirmPassword">
+                                确认密码 <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 type="password"
                                 required
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${getFieldError('confirmPassword') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                    }`}
                                 placeholder="请再次输入密码"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
+                                className={getFieldError('confirmPassword') ? 'border-destructive focus-visible:ring-destructive/20' : ''}
                             />
                             {getFieldError('confirmPassword') && (
-                                <p className="mt-1 text-sm text-red-600">{getFieldError('confirmPassword')}</p>
+                                <p className="text-sm text-destructive">{getFieldError('confirmPassword')}</p>
                             )}
                         </div>
-                    </div>
 
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-red-800">
-                                        注册失败
-                                    </h3>
-                                    <div className="mt-2 text-sm text-red-700">
-                                        <p>{error}</p>
+                        {error && (
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1">
+                                        <h4 className="text-sm font-medium text-destructive">
+                                            注册失败
+                                        </h4>
+                                        <p className="text-sm text-destructive/80 mt-1">
+                                            {error}
+                                        </p>
                                         {Object.keys(fieldErrors).length > 1 && (
-                                            <ul className="mt-1 list-disc list-inside">
+                                            <ul className="mt-2 text-sm text-destructive/80 list-disc list-inside space-y-1">
                                                 {Object.entries(fieldErrors).map(([field, message]) => (
                                                     <li key={field}>{message}</li>
                                                 ))}
@@ -252,20 +245,18 @@ export default function RegisterPage() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div>
-                        <button
+                        <Button
                             type="submit"
+                            className="w-full"
                             disabled={isLoading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? '注册中...' : '注册'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     )
 } 
