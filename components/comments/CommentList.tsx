@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { CommentItem } from "./CommentItem"
-import { CommentForm } from "./CommentForm"
 import type { CommentWithDetails } from "@/lib/types"
 
 interface CommentListProps {
-    postId: string
     comments: CommentWithDetails[]
     loading?: boolean
     onLoadMore?: () => void
@@ -14,7 +12,6 @@ interface CommentListProps {
 }
 
 export function CommentList({
-    postId,
     comments,
     loading,
     onLoadMore,
@@ -26,10 +23,6 @@ export function CommentList({
     useEffect(() => {
         setLocalComments(comments)
     }, [comments])
-
-    const handleNewComment = (newComment: CommentWithDetails) => {
-        setLocalComments(prev => [...prev, newComment])
-    }
 
     const handleReplyCreated = (newReply: CommentWithDetails) => {
         setLocalComments(prev => [...prev, newReply])
@@ -51,13 +44,6 @@ export function CommentList({
 
     return (
         <div className="space-y-1">
-            {/* 评论表单 */}
-            <CommentForm
-                postId={postId}
-                onCommentCreated={handleNewComment}
-                placeholder="写下你的想法..."
-            />
-
             {/* 评论列表 */}
             <div className="divide-y divide-border">
                 {localComments.map((comment) => (

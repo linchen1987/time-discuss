@@ -12,6 +12,7 @@ import { zhCN } from "date-fns/locale"
 import LexicalRenderer from "@/components/LexicalRenderer"
 import { ImagePreview } from "@/components/ui/ImagePreview"
 import { CommentList } from "@/components/comments/CommentList"
+import { CommentForm } from "@/components/comments/CommentForm"
 import type { PostWithDetails, CommentWithDetails } from "@/lib/types"
 import { logError } from '@/lib/debug'
 
@@ -61,6 +62,10 @@ export default function PostDetailsPage() {
             fetchPost()
         }
     }, [postId])
+
+    const handleNewComment = (newComment: CommentWithDetails) => {
+        setComments(prev => [...prev, newComment])
+    }
 
     if (loading) {
         return (
@@ -237,9 +242,17 @@ export default function PostDetailsPage() {
                             </div>
                         </div>
 
+                        {/* 评论表单 */}
+                        <div className="border-b border-border">
+                            <CommentForm
+                                postId={post.id}
+                                onCommentCreated={handleNewComment}
+                                placeholder="写下你的想法..."
+                            />
+                        </div>
+
                         {/* 评论区域 */}
                         <CommentList
-                            postId={post.id}
                             comments={comments}
                             loading={false}
                         />
@@ -333,9 +346,17 @@ export default function PostDetailsPage() {
                         </div>
                     </div>
 
+                    {/* 评论表单 */}
+                    <div className="border-b border-border">
+                        <CommentForm
+                            postId={post.id}
+                            onCommentCreated={handleNewComment}
+                            placeholder="写下你的想法..."
+                        />
+                    </div>
+
                     {/* 评论区域 */}
                     <CommentList
-                        postId={post.id}
                         comments={comments}
                         loading={false}
                     />

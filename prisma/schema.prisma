@@ -8,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 用户表 - 支持用户名/密码登录和 OAuth 登录
+// 用户表 - 支持用户名/密码登录, Email登录和 OAuth 登录
 // 存储用户基本信息（用户名、邮箱、姓名、头像）
 // 兼容 NextAuth.js 认证系统
 model User {
