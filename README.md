@@ -23,7 +23,7 @@
    # 按提示修改 .env
    cp .env.example .env
    ```
-4. **更新数据库结构**
+4. **初始化数据库**
      ```bash
      npx prisma migrate deploy
      ```
