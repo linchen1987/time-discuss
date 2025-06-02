@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
       // },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/sw.js',
+        destination: '/api/sw',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

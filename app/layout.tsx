@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: APP_CONFIG.name,
   description: APP_CONFIG.seoDescription,
   manifest: "/api/manifest",
-  themeColor: "#667eea",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -37,6 +36,10 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
     ],
   },
+};
+
+export const viewport = {
+  themeColor: "#667eea",
 };
 
 export default function RootLayout({
