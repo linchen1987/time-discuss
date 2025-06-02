@@ -1,79 +1,83 @@
-一个基于 Next.js 构建的社交平台，支持 PWA (渐进式Web应用) 功能。
+# Time Discuss
 
-## ✨ 主要功能
+A social platform built with Next.js, supporting PWA (Progressive Web App) functionality.
 
-- 📱 **PWA 支持** - 可安装为手机/桌面应用
-- 💬 **社交分享** - 帖子发布、评论互动
-- 🎨 **现代UI** - 基于 Tailwind CSS 的美观界面
-- 🔐 **用户认证** - 安全的登录注册系统
-- 📝 **富文本编辑** - 支持 Markdown 和富文本内容
+![](./assets/screenshot.png)
 
-## 🚀 快速部署
+## ✨ Key Features
 
-1. **安装依赖**
+- 📱 **PWA Support** - Installable as mobile/desktop app
+- 💬 **Social Sharing** - Post publishing, comment interactions
+- 🎨 **Modern UI** - Beautiful interface based on Tailwind CSS
+- 🔐 **User Authentication** - Secure login and registration system
+- 📝 **Rich Text Editor** - Support for Markdown and rich text content
+
+## 🚀 Quick Deployment
+
+1. **Install Dependencies**
    ```bash
    npm install
    ```
-2. **构建项目**
+2. **Build Project**
    ```bash
    npm run build
    ```
-3. **配置环境变量**
+3. **Configure Environment Variables**
    ```bash
-   # 按提示修改 .env
+   # Modify .env as prompted
    cp .env.example .env
    ```
-4. **初始化数据库**
+4. **Initialize Database**
      ```bash
      npx prisma migrate deploy
      ```
-5. **启动服务**
+5. **Start Service**
    ```bash
    npm run start
    ```
 
-## 🚀 快速开发
+## 🚀 Quick Development
 
-### 安装依赖
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 启动开发服务器
+### Start Development Server
 
 ```bash
 npm run dev
 ```
 
-打开 [http://localhost:3000](http://localhost:3000) 查看应用。
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 
-## 🚀 快速开发
+## 🚀 Development Setup
 
-1. **安装依赖**
+1. **Install Dependencies**
    ```bash
    npm install
    ```
-2. **配置环境变量**
+2. **Configure Environment Variables**
      ```bash
-     # 按提示修改 .env
+     # Modify .env as prompted
      cp .env.example .env
      ```
-3. **更新数据库结构**
+3. **Update Database Schema**
      ```bash
      npx prisma db push
      ```
-6. **启动服务**
+6. **Start Service**
    ```bash
    npm run dev
    ```
 
-## 🔧 技术栈
+## 🔧 Tech Stack
 
-- **框架**: Next.js 15
-- **样式**: Tailwind CSS
-- **数据库**: Prisma + SQLite
-- **认证**: NextAuth.js
+- **Framework**: Next.js 15
+- **Styling**: Tailwind CSS
+- **Database**: Prisma + SQLite
+- **Authentication**: NextAuth.js
 - **PWA**: Web App Manifest + Service Worker
-- **类型**: TypeScript
+- **Types**: TypeScript
