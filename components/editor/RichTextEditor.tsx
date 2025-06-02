@@ -85,19 +85,19 @@ export function RichTextEditor({
             maxImages: 9,
             showFullToolbar: true,
             minHeight: '100px',
-            focusedMinHeight: '150px', // 聚焦时的最小高度
+            focusedMinHeight: '100px', // 聚焦时的最小高度
         },
         comment: {
             maxImages: 4,
             showFullToolbar: true,
             minHeight: '80px',
-            focusedMinHeight: '120px',
+            focusedMinHeight: '80px',
         },
         reply: {
             maxImages: 4, // 回复时也支持图片，和comment模式一样
             showFullToolbar: true, // 显示完整工具栏
             minHeight: '60px',
-            focusedMinHeight: '100px',
+            focusedMinHeight: '60px',
         }
     }
 
