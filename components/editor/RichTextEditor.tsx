@@ -10,7 +10,7 @@ import type { Emoji } from '@/lib/emoji/data'
 interface RichTextEditorProps {
     // 编辑器相关
     placeholder?: string
-    initialValue?: string
+    initialValue?: string | Record<string, unknown> | null
     onChange?: (editorState: Record<string, unknown>, html: string) => void
     onSubmit?: () => void
     className?: string

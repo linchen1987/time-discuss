@@ -3,6 +3,29 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { logError } from '@/lib/debug';
 
+// 创建一个空的 lexical state
+function createEmptyLexicalState(): Record<string, unknown> {
+  return {
+    root: {
+      children: [
+        {
+          children: [],
+          direction: null,
+          format: '',
+          indent: 0,
+          type: 'paragraph',
+          version: 1,
+        },
+      ],
+      direction: null,
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1,
+    },
+  };
+}
+
 interface UseEditProps<T = Record<string, unknown>> {
   entityId: string;
   entityType: 'post' | 'comment';
@@ -22,9 +45,12 @@ export function useEdit<T = Record<string, unknown>>({
 }: UseEditProps<T>) {
   const { data: session } = useSession();
 
+  // 确保总有一个有效的 lexical state，如果原始为 null 且有 HTML 内容，则创建一个空状态
+  const validInitialLexicalState = initialLexicalState || (initialContentHtml.trim() ? createEmptyLexicalState() : null);
+
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [editedLexicalState, setEditedLexicalState] = useState<Record<string, unknown> | null>(initialLexicalState);
+  const [editedLexicalState, setEditedLexicalState] = useState<Record<string, unknown> | null>(validInitialLexicalState);
   const [editedContentHtml, setEditedContentHtml] = useState(initialContentHtml);
   const [editedImages, setEditedImages] = useState<string[]>(initialImages);
 
@@ -34,7 +60,7 @@ export function useEdit<T = Record<string, unknown>>({
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditedLexicalState(initialLexicalState);
+    setEditedLexicalState(validInitialLexicalState);
     setEditedContentHtml(initialContentHtml);
     setEditedImages(initialImages);
   };

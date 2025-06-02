@@ -247,7 +247,7 @@ function IMEFriendlyAutoLinkPlugin() {
 
 interface LexicalEditorProps {
     placeholder?: string
-    initialValue?: string
+    initialValue?: string | Record<string, unknown> | null
     onChange?: (editorState: Record<string, unknown>, html: string) => void
     onSubmit?: () => void
     onImagePaste?: (files: File[]) => void
@@ -272,6 +272,24 @@ export default function LexicalEditor({
     className = "",
     minHeight = "80px"
 }: LexicalEditorProps) {
+    // 处理 initialValue，如果是对象则序列化为 JSON 字符串
+    let editorState = null
+
+    if (initialValue) {
+        if (typeof initialValue === 'string') {
+            // 如果是字符串，直接使用（可能是 JSON 字符串或 HTML 内容）
+            editorState = initialValue
+        } else if (typeof initialValue === 'object' && initialValue !== null) {
+            // 如果是对象，序列化为 JSON 字符串
+            try {
+                editorState = JSON.stringify(initialValue)
+            } catch (error) {
+                debugEditor('Failed to serialize initialValue: %O', error)
+                editorState = null
+            }
+        }
+    }
+
     const initialConfig = {
         namespace: 'TimeDiscussEditor',
         theme: editorTheme,
@@ -283,7 +301,7 @@ export default function LexicalEditor({
             }
         },
         nodes: [AutoLinkNode, LinkNode],
-        editorState: initialValue || null,
+        editorState: editorState,
     }
 
     const handleChange = (editorState: EditorState) => {

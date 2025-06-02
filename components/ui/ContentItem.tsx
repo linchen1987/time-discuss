@@ -65,7 +65,7 @@ export function ContentItem<T extends PostWithDetails | CommentWithDetails>({
     const {
         isEditing,
         isUpdating,
-        editedContentHtml,
+        editedLexicalState,
         editedImages,
         setEditedImages,
         handleEditClick,
@@ -154,7 +154,7 @@ export function ContentItem<T extends PostWithDetails | CommentWithDetails>({
                                     placeholder={`编辑${type === 'post' ? '帖子' : '评论'}内容...`}
                                     onChange={handleEditorChange}
                                     onSubmit={handleSaveEdit}
-                                    initialValue={editedContentHtml}
+                                    initialValue={editedLexicalState}
                                     initialImages={editedImages}
                                     onImagesChange={setEditedImages}
                                     showToolbar={true}
