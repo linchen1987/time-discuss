@@ -62,7 +62,7 @@ export function UserInfo({
                 {replyToUser && (
                     <>
                         <span className={`text-muted-foreground ${metaSize}`}>回复</span>
-                        <span className={`text-blue-600 ${metaSize}`}>
+                        <span className={`text-blue-600 dark:text-blue-400 ${metaSize}`}>
                             @{replyToUser.name || "匿名用户"}
                         </span>
                     </>

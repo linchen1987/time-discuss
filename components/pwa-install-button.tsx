@@ -84,7 +84,7 @@ export function PWAInstallButton() {
     // 如果已安装，显示已安装状态
     if (isInstalled) {
         return (
-            <Button variant="outline" size="sm" disabled className="text-green-600">
+            <Button variant="outline" size="sm" disabled className="text-green-600 dark:text-green-400">
                 <Check className="w-4 h-4 mr-2" />
                 已安装
             </Button>
@@ -98,7 +98,7 @@ export function PWAInstallButton() {
                 variant="outline"
                 size="sm"
                 onClick={handleInstallClick}
-                className="text-blue-600 hover:text-blue-700"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
             >
                 <Download className="w-4 h-4 mr-2" />
                 安装

@@ -223,7 +223,7 @@ export function ContentItem<T extends PostWithDetails | CommentWithDetails>({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-muted-foreground hover:text-blue-600"
+                                    className="text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400"
                                     onClick={onReplyClick}
                                     disabled={!session}
                                 >
@@ -237,7 +237,7 @@ export function ContentItem<T extends PostWithDetails | CommentWithDetails>({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-muted-foreground hover:text-blue-600"
+                                    className="text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400"
                                     onClick={onClick}
                                 >
                                     <MessageCircle className="h-4 w-4 mr-1" />

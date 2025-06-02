@@ -64,7 +64,7 @@ export function CommentList({
                     <button
                         onClick={onLoadMore}
                         disabled={loading}
-                        className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-50"
                     >
                         {loading ? '加载中...' : '加载更多评论'}
                     </button>

@@ -88,7 +88,7 @@ export function EditorToolbar({
                             variant="ghost"
                             size="sm"
                             onClick={onBoldFormat}
-                            className={`text-blue-500 hover:text-blue-600 ${isBold ? 'bg-blue-100' : ''}`}
+                            className={`text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 ${isBold ? 'bg-blue-100 dark:bg-blue-900/30' : ''}`}
                         >
                             <Bold className="w-5 h-5 stroke-2" />
                         </Button>
@@ -111,7 +111,7 @@ export function EditorToolbar({
                                 size="sm"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isUploading || imageCount >= maxImages}
-                                className="text-blue-500 hover:text-blue-600"
+                                className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
                             >
                                 {isUploading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -130,7 +130,7 @@ export function EditorToolbar({
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            className="text-blue-500 hover:text-blue-600"
+                            className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
                         >
                             <Smile className="w-5 h-5 stroke-2" />
                         </Button>

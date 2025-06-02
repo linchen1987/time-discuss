@@ -90,7 +90,7 @@ export function LikeUsersList({
                             {" 和 "}
                             <button
                                 onClick={() => setShowAll(true)}
-                                className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                             >
                                 其他 {remainingCount} 人
                             </button>
@@ -153,7 +153,7 @@ export function LikeUsersList({
                                 {" 和 "}
                                 <button
                                     onClick={() => setShowAll(true)}
-                                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                                 >
                                     其他 {remainingCount} 人
                                 </button>

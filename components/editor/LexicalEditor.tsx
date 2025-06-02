@@ -29,7 +29,7 @@ const editorTheme = {
         italic: 'italic',
         underline: 'underline',
     },
-    link: 'text-primary underline hover:text-primary/80 cursor-pointer',
+    link: 'text-primary underline hover:text-primary/80 cursor-pointer dark:text-blue-400 dark:hover:text-blue-300',
 }
 
 // URL 正则表达式 - 匹配多种 URL 格式
