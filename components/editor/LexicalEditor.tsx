@@ -251,6 +251,8 @@ interface LexicalEditorProps {
     onSubmit?: () => void
     onImagePaste?: (files: File[]) => void
     onFormatChange?: (formats: { isBold: boolean }) => void
+    onFocus?: () => void
+    onBlur?: () => void
     showToolbar?: boolean
     className?: string
     minHeight?: string
@@ -263,6 +265,8 @@ export default function LexicalEditor({
     onSubmit,
     onImagePaste,
     onFormatChange,
+    onFocus,
+    onBlur,
     showToolbar = true,
     className = "",
     minHeight = "80px"
@@ -306,8 +310,11 @@ export default function LexicalEditor({
                     <RichTextPlugin
                         contentEditable={
                             <ContentEditable
-                                className={`min-h-[${minHeight}] p-1 pl-2 text-base leading-relaxed focus:outline-none resize-none text-foreground`}
+                                className="p-1 pl-2 text-base leading-relaxed focus:outline-none resize-none text-foreground transition-all duration-200"
+                                style={{ minHeight }}
                                 spellCheck={false}
+                                onFocus={onFocus}
+                                onBlur={onBlur}
                             />
                         }
                         placeholder={

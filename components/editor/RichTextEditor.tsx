@@ -67,6 +67,7 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
     const [editorState, setEditorState] = useState<Record<string, unknown> | null>(null)
     const [isBold, setIsBold] = useState(false)
+    const [isFocused, setIsFocused] = useState(false)
 
     const {
         uploadedImages,
@@ -82,16 +83,19 @@ export function RichTextEditor({
             maxImages: 9,
             showFullToolbar: true,
             minHeight: '100px',
+            focusedMinHeight: '150px', // 聚焦时的最小高度
         },
         comment: {
             maxImages: 4,
             showFullToolbar: true,
             minHeight: '80px',
+            focusedMinHeight: '120px',
         },
         reply: {
             maxImages: 4, // 回复时也支持图片，和comment模式一样
             showFullToolbar: true, // 显示完整工具栏
             minHeight: '60px',
+            focusedMinHeight: '100px',
         }
     }
 
@@ -99,6 +103,9 @@ export function RichTextEditor({
 
     // 动态计算样式
     const editorStyle = maxHeight ? { maxHeight, overflowY: 'auto' as const } : {}
+
+    // 动态计算最小高度
+    const currentMinHeight = isFocused ? config.focusedMinHeight : config.minHeight
 
     // 初始化图片
     React.useEffect(() => {
@@ -147,6 +154,16 @@ export function RichTextEditor({
         handleImageUpload(fileList)
     }
 
+    const handleFocus = () => {
+        console.log('Editor focused - changing height to:', config.focusedMinHeight)
+        setIsFocused(true)
+    }
+
+    const handleBlur = () => {
+        console.log('Editor blurred - changing height to:', config.minHeight)
+        setIsFocused(false)
+    }
+
     const canSubmit = editorState || uploadedImages.length > 0
 
     return (
@@ -159,9 +176,11 @@ export function RichTextEditor({
                     onFormatChange={handleFormatChange}
                     onSubmit={onSubmit}
                     onImagePaste={handleImagePaste}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
                     showToolbar={false}
                     className="border-none shadow-none"
-                    minHeight={config.minHeight}
+                    minHeight={currentMinHeight}
                 />
             </div>
 
