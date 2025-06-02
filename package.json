@@ -12,8 +12,7 @@
     "db:studio": "npx prisma studio",
     "db:reset": "npx prisma db push --force-reset && npm run db:seed",
     "pwa:icons": "node scripts/generate-icons.js",
-    "pwa:test": "node scripts/test-pwa.js",
-    "config:init": "node scripts/init-config.mjs"
+    "pwa:test": "node scripts/test-pwa.js"
   },
   "dependencies": {
     "@lexical/html": "^0.31.2",

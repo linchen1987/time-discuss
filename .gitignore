@@ -45,6 +45,3 @@ next-env.d.ts
 
 # uploads
 /uploads
-
-# 自定义配置文件
-config/app.ts

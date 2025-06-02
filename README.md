@@ -19,20 +19,15 @@
    npm run build
    ```
 3. **配置环境变量**
-     ```bash
-     cp .env.example .env
-     # 按提示修改 .env
-     ```
-4. **初始化应用配置**
    ```bash
-   npm run config:init
-   # 按提示修改 config/app.ts
+   # 按提示修改 .env
+   cp .env.example .env
    ```
-5. **更新数据库结构**
+4. **更新数据库结构**
      ```bash
      npx prisma migrate deploy
      ```
-6. **启动服务**
+5. **启动服务**
    ```bash
    npm run start
    ```
@@ -62,14 +57,9 @@ npm run dev
    ```
 2. **配置环境变量**
      ```bash
-     cp .env.example .env
      # 按提示修改 .env
+     cp .env.example .env
      ```
-3. **初始化应用配置**
-   ```bash
-   npm run config:init
-   # 按提示修改 config/app.ts
-   ```
 3. **更新数据库结构**
      ```bash
      npx prisma db push
