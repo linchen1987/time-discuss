@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import { Layout } from '@/components/Layout'
-import ProfileForm from '../../components/ProfileForm'
+import ProfileForm from '@/components/ProfileForm'
 
 interface ApiUser {
     id: string

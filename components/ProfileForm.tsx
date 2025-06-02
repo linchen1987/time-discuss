@@ -8,7 +8,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Camera, Loader2 } from 'lucide-react';
-import { updateUserProfile } from '../app/actions/user';
+import { updateUserProfile } from '@/app/actions/user';
 import { toast } from 'sonner';
 import { logError } from '@/lib/debug';
 
