@@ -39,6 +39,7 @@ interface RichTextEditorProps {
     onCancel?: () => void
     cancelText?: string
     customActions?: React.ReactNode // 自定义操作按钮
+    canSubmit?: boolean // 新增：外部控制是否可以提交
 }
 
 export function RichTextEditor({
@@ -63,11 +64,12 @@ export function RichTextEditor({
     showCancel = false,
     onCancel,
     cancelText = "取消",
-    customActions
+    customActions,
+    canSubmit
 }: RichTextEditorProps) {
-    const [editorState, setEditorState] = useState<Record<string, unknown> | null>(null)
     const [isBold, setIsBold] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
+    const [contentHtml, setContentHtml] = useState('')
 
     const {
         uploadedImages,
@@ -119,9 +121,9 @@ export function RichTextEditor({
         onImagesChange?.(uploadedImages)
     }, [uploadedImages, onImagesChange])
 
-    const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {
-        setEditorState(editorState)
-        onChange?.(editorState, html)
+    const handleEditorChange = (newEditorState: Record<string, unknown>, html: string) => {
+        setContentHtml(html)
+        onChange?.(newEditorState, html)
     }
 
     const handleFormatChange = (formats: { isBold: boolean }) => {
@@ -164,7 +166,11 @@ export function RichTextEditor({
         setIsFocused(false)
     }
 
-    const canSubmit = editorState || uploadedImages.length > 0
+    // 内部计算是否可以提交（只检查实际内容，不依赖 editorState）
+    const internalCanSubmit = Boolean(contentHtml.trim().length > 0 || uploadedImages.length > 0)
+
+    // 最终的 canSubmit 状态：优先使用外部传入的值，否则使用内部计算的值
+    const finalCanSubmit = canSubmit !== undefined ? canSubmit : internalCanSubmit
 
     return (
         <div className={`border border-border rounded-md bg-background ${className}`}>
@@ -204,7 +210,7 @@ export function RichTextEditor({
                     onSubmit={showSubmit ? onSubmit : undefined}
                     submitText={submitText}
                     isSubmitting={isSubmitting}
-                    disabled={disabled || !canSubmit}
+                    disabled={disabled || !finalCanSubmit}
                     showBold={showBold && config.showFullToolbar}
                     showImageUpload={showImageUpload}
                     showEmoji={showEmoji && config.showFullToolbar}

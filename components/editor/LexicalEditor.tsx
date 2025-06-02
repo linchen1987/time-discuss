@@ -17,7 +17,8 @@ import {
     KEY_ENTER_COMMAND,
     COMMAND_PRIORITY_HIGH,
     $createTextNode,
-    $insertNodes
+    $insertNodes,
+    $getRoot
 } from 'lexical'
 import type { Emoji } from '@/lib/emoji/data'
 import { debugEditor, logError } from '@/lib/debug'
@@ -288,13 +289,18 @@ export default function LexicalEditor({
     const handleChange = (editorState: EditorState) => {
         try {
             const json = editorState.toJSON()
-            // 简化的 HTML 生成 - 暂时使用文本内容
-            const text = JSON.stringify(json)
 
-            debugEditor('Editor state changed: %O', { hasContent: text.length > 50 })
+            // 从编辑器状态中提取纯文本内容
+            let textContent = ''
+            editorState.read(() => {
+                const root = $getRoot()
+                textContent = root.getTextContent()
+            })
+
+            debugEditor('Editor state changed: %O', { hasContent: textContent.trim().length > 0, textLength: textContent.length })
 
             if (onChange) {
-                onChange(json as unknown as Record<string, unknown>, text)
+                onChange(json as unknown as Record<string, unknown>, textContent)
             }
         } catch (error) {
             debugEditor('Error handling editor change: %O', error)

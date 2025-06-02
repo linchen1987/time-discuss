@@ -41,7 +41,7 @@ export function useEdit<T = Record<string, unknown>>({
 
   const handleSaveEdit = async () => {
     if (!session || isUpdating) return;
-    if (!editedLexicalState && editedImages.length === 0) return;
+    if (!hasActualContent) return;
 
     setIsUpdating(true);
     try {
@@ -100,7 +100,16 @@ export function useEdit<T = Record<string, unknown>>({
   };
 
   const canEdit = !!session;
-  const hasChanges = editedLexicalState !== null || editedImages.length > 0;
+
+  // 检查是否有实际内容
+  const hasActualContent = Boolean(editedContentHtml.trim().length > 0 || editedImages.length > 0);
+
+  // 检查是否有变化（相对于初始值）
+  const hasContentChanges = editedContentHtml.trim() !== initialContentHtml.trim();
+  const hasImageChanges = JSON.stringify(editedImages.sort()) !== JSON.stringify(initialImages.sort());
+
+  // 最终的hasChanges：有实际内容且相对于初始值有变化
+  const hasChanges = hasActualContent && (hasContentChanges || hasImageChanges);
 
   return {
     isEditing,

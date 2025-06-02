@@ -49,7 +49,7 @@ export function useRichTextForm<T = unknown>({
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [editorKey, setEditorKey] = useState(0);
 
-  const hasContent = Boolean((editorState && contentHtml.trim()) || uploadedImages.length > 0);
+  const hasContent = Boolean(contentHtml.trim().length > 0 || uploadedImages.length > 0);
   const canSubmit = Boolean(!isSubmitting && (!validateContent || hasContent));
 
   const handleEditorChange = (editorState: Record<string, unknown>, html: string) => {

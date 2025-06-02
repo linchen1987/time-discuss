@@ -53,7 +53,8 @@ export function RichTextForm<T = unknown>({
         editorKey,
         handleEditorChange,
         handleImagesChange,
-        handleSubmit
+        handleSubmit,
+        canSubmit
     } = useRichTextForm({
         onSubmit,
         onSuccess,
@@ -90,6 +91,7 @@ export function RichTextForm<T = unknown>({
                     showCancel={showCancel}
                     onCancel={onCancel}
                     cancelText={cancelText}
+                    canSubmit={canSubmit}
                 />
             </div>
         </div>
