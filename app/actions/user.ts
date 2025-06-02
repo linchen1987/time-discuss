@@ -24,6 +24,7 @@ export async function updateUserProfile(formData: FormData) {
     });
 
     if (!validation.success) {
+      console.error('Validation failed:', validation.error);
       return {
         success: false,
         error: validation.error.errors[0]?.message || '输入数据无效',
@@ -44,8 +45,28 @@ export async function updateUserProfile(formData: FormData) {
     revalidatePath('/');
 
     return { success: true };
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: Error | any) {
     console.error('Update profile error:', error);
+
+    // 在开发环境中显示详细错误信息
+    if (process.env.NODE_ENV === 'development') {
+      return { success: false, error: `更新失败，请重试: ${error?.message}` };
+    }
+
+    // 在生产环境中，根据错误类型提供合适的错误信息
+    if (error?.code === 'P2002') {
+      return { success: false, error: '用户名或邮箱已存在' };
+    }
+
+    if (error?.code === 'P2025') {
+      return { success: false, error: '用户不存在' };
+    }
+
+    if (error?.message?.includes('database') || error?.message?.includes('connection')) {
+      return { success: false, error: '数据库连接错误，请稍后重试' };
+    }
+
     return { success: false, error: '更新失败，请重试' };
   }
 }
