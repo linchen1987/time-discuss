@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       const provider = process.env.AVATAR_PROVIDER || 'local';
 
       if (provider === 'vercel') {
-        const rootDir = process.env.VERCEL_BLOB_ROOT_DIR || '';
+        const rootDir = process.env.BLOB_ROOT_DIR || '';
         const blobPath = rootDir ? `${rootDir.replace(/\/$/, '')}/posts/${fileName}` : `posts/${fileName}`;
         const blob = await put(blobPath, file, { access: 'public' });
         return blob.url;

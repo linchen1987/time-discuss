@@ -19,10 +19,10 @@ export const APP_CONFIG = {
 
   // 功能开关
   features: {
-    allowRegistration: process.env.NEXT_PUBLIC_FEATURE_ALLOW_REGISTRATION === 'true', // 是否允许用户注册
-    enableNotifications: process.env.NEXT_PUBLIC_FEATURE_ENABLE_NOTIFICATIONS === 'true', // 是否启用通知功能
-    enableComments: process.env.NEXT_PUBLIC_FEATURE_ENABLE_COMMENTS === 'true', // 是否启用评论功能
-    enableLikes: process.env.NEXT_PUBLIC_FEATURE_ENABLE_LIKES === 'true', // 是否启用点赞功能
+    registrationDisabled: process.env.NEXT_PUBLIC_FEATURE_REGISTRATION_DISABLED === 'true', // 是否禁用注册
+    notificationsDisabled: process.env.NEXT_PUBLIC_FEATURE_NOTIFICATIONS_DISABLED === 'true', // 是否禁用通知
+    commentsDisabled: process.env.NEXT_PUBLIC_FEATURE_COMMENTS_DISABLED === 'true', // 是否禁用评论
+    likesDisabled: process.env.NEXT_PUBLIC_FEATURE_LIKES_DISABLED === 'true', // 是否禁用点赞
   },
 } as const;
 
