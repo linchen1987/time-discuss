@@ -6,9 +6,13 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" fill="url(#grad2)"/>
-  <circle cx="256" cy="204.8" r="40.96" fill="white"/>
-  <path d="M 179.2 266.24 Q 256 332.8 332.8 266.24" 
-        stroke="white" stroke-width="15.36" fill="none" stroke-linecap="round"/>
-  <text x="256" y="409.6" text-anchor="middle" fill="white" 
-        font-family="Arial, sans-serif" font-size="30.72" font-weight="bold">朋友之家</text>
+  
+  <!-- 三个人头（均匀布局） -->
+  <circle cx="187.73333333333335" cy="213.33333333333331" r="29.866666666666667" fill="white" />
+  <circle cx="256" cy="187.73333333333335" r="34.13333333333333" fill="white" />
+  <circle cx="324.26666666666665" cy="213.33333333333331" r="29.866666666666667" fill="white" />
+  
+  <!-- 连接微笑弧线，加粗 -->
+  <path d="M 170.66666666666669 290.1333333333333 Q 256 358.4 341.3333333333333 290.1333333333333" 
+        stroke="white" stroke-width="17.066666666666666" fill="none" stroke-linecap="round" />
 </svg>

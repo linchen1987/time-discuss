@@ -5,10 +5,16 @@
       <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="384" height="384" fill="url(#grad1)" rx="76.80000000000001"/>
-  <circle cx="192" cy="134.39999999999998" r="46.08" fill="white"/>
-  <path d="M 96 211.20000000000002 Q 192 288 288 211.20000000000002" 
-        stroke="white" stroke-width="15.36" fill="none" stroke-linecap="round"/>
-  <text x="192" y="345.6" text-anchor="middle" fill="white" 
-        font-family="Arial, sans-serif" font-size="30.72" font-weight="bold">朋友</text>
+
+  <!-- 背景 -->
+  <rect width="384" height="384" fill="url(#grad1)" rx="76.8" />
+
+  <!-- 三个人头（均匀布局） -->
+  <circle cx="128" cy="152" r="28" fill="white" />
+  <circle cx="192" cy="128" r="32" fill="white" />
+  <circle cx="256" cy="152" r="28" fill="white" />
+
+  <!-- 连接微笑弧线，加粗 -->
+  <path d="M 112 224 Q 192 288 272 224" 
+        stroke="white" stroke-width="16" fill="none" stroke-linecap="round" />
 </svg>

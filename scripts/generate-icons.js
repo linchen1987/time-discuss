@@ -1,8 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 
-// 创建一个简单的SVG图标
+// 创建一个简单的SVG图标 - 使用新的设计风格
 const createSVGIcon = (size) => {
+  // 基于 192x192 的比例计算
+  const scale = size / 192;
+
+  // 人头大小
+  const smallHeadRadius = 14 * scale;
+  const largeHeadRadius = 16 * scale;
+
+  // 微笑弧线粗细
+  const strokeWidth = 8 * scale;
+
+  // 圆角半径
+  const borderRadius = 38.4 * scale;
+
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -10,12 +23,18 @@ const createSVGIcon = (size) => {
       <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="${size}" height="${size}" fill="url(#grad1)" rx="${size * 0.2}"/>
-  <circle cx="${size * 0.5}" cy="${size * 0.35}" r="${size * 0.12}" fill="white"/>
-  <path d="M ${size * 0.25} ${size * 0.55} Q ${size * 0.5} ${size * 0.75} ${size * 0.75} ${size * 0.55}" 
-        stroke="white" stroke-width="${size * 0.04}" fill="none" stroke-linecap="round"/>
-  <text x="${size * 0.5}" y="${size * 0.9}" text-anchor="middle" fill="white" 
-        font-family="Arial, sans-serif" font-size="${size * 0.08}" font-weight="bold">朋友</text>
+
+  <!-- 背景 -->
+  <rect width="${size}" height="${size}" fill="url(#grad1)" rx="${borderRadius}" />
+
+  <!-- 三个人头（均匀布局） -->
+  <circle cx="${64 * scale}" cy="${76 * scale}" r="${smallHeadRadius}" fill="white" />
+  <circle cx="${96 * scale}" cy="${64 * scale}" r="${largeHeadRadius}" fill="white" />
+  <circle cx="${128 * scale}" cy="${76 * scale}" r="${smallHeadRadius}" fill="white" />
+
+  <!-- 连接微笑弧线，加粗 -->
+  <path d="M ${56 * scale} ${112 * scale} Q ${96 * scale} ${144 * scale} ${136 * scale} ${112 * scale}" 
+        stroke="white" stroke-width="${strokeWidth}" fill="none" stroke-linecap="round" />
 </svg>`;
 };
 
@@ -38,9 +57,19 @@ iconSizes.forEach((size) => {
   console.log(`Generated: ${filename}`);
 });
 
-// 创建maskable图标 (更大的内容区域)
+// 创建maskable图标 (更大的内容区域) - 使用新设计风格
 const createMaskableSVG = () => {
   const size = 512;
+  const scale = size / 192;
+
+  // 适当缩小元素以适应maskable要求
+  const innerScale = scale * 0.8;
+  const offset = size * 0.1; // 10% 边距
+
+  const smallHeadRadius = 14 * innerScale;
+  const largeHeadRadius = 16 * innerScale;
+  const strokeWidth = 8 * innerScale;
+
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -49,11 +78,17 @@ const createMaskableSVG = () => {
     </linearGradient>
   </defs>
   <rect width="${size}" height="${size}" fill="url(#grad2)"/>
-  <circle cx="${size * 0.5}" cy="${size * 0.4}" r="${size * 0.08}" fill="white"/>
-  <path d="M ${size * 0.35} ${size * 0.52} Q ${size * 0.5} ${size * 0.65} ${size * 0.65} ${size * 0.52}" 
-        stroke="white" stroke-width="${size * 0.03}" fill="none" stroke-linecap="round"/>
-  <text x="${size * 0.5}" y="${size * 0.8}" text-anchor="middle" fill="white" 
-        font-family="Arial, sans-serif" font-size="${size * 0.06}" font-weight="bold">朋友之家</text>
+  
+  <!-- 三个人头（均匀布局） -->
+  <circle cx="${64 * innerScale + offset}" cy="${76 * innerScale + offset}" r="${smallHeadRadius}" fill="white" />
+  <circle cx="${96 * innerScale + offset}" cy="${64 * innerScale + offset}" r="${largeHeadRadius}" fill="white" />
+  <circle cx="${128 * innerScale + offset}" cy="${76 * innerScale + offset}" r="${smallHeadRadius}" fill="white" />
+  
+  <!-- 连接微笑弧线，加粗 -->
+  <path d="M ${56 * innerScale + offset} ${112 * innerScale + offset} Q ${96 * innerScale + offset} ${144 * innerScale + offset} ${136 * innerScale + offset} ${
+    112 * innerScale + offset
+  }" 
+        stroke="white" stroke-width="${strokeWidth}" fill="none" stroke-linecap="round" />
 </svg>`;
 };
 
