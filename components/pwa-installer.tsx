@@ -27,7 +27,7 @@ export function PWAInstaller() {
         // 注册 Service Worker（确保在客户端环境）
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
             navigator.serviceWorker
-                .register('/sw.js')
+                .register('/api/sw')
                 .then((registration) => {
                     console.log('Service Worker 注册成功:', registration);
                 })

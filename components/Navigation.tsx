@@ -3,6 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { User } from 'lucide-react'
+import { APP_CONFIG } from '@/config/app'
 
 interface ExtendedUser {
     name?: string | null;
@@ -19,7 +20,7 @@ export default function Navigation() {
                     <div className="flex justify-between h-16">
                         <div className="flex items-center">
                             <Link href="/" className="text-xl font-bold text-gray-900">
-                                朋友之家
+                                {APP_CONFIG.name}
                             </Link>
                         </div>
                         <div className="flex items-center">
@@ -39,7 +40,7 @@ export default function Navigation() {
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
                         <Link href="/" className="text-xl font-bold text-gray-900">
-                            朋友之家
+                            {APP_CONFIG.name}
                         </Link>
                     </div>
 

@@ -1,5 +1,9 @@
-const CACHE_NAME = 'friends-home-v1';
-const STATIC_CACHE_URLS = ['/', '/manifest.json', '/icons/icon-192x192.svg', '/icons/icon-512x512.svg'];
+import { APP_CONFIG } from '@/config/app';
+
+export async function GET() {
+  const swContent = `
+const CACHE_NAME = '${APP_CONFIG.shortName.toLowerCase().replace(/\s+/g, '-')}-v1';
+const STATIC_CACHE_URLS = ['/', '/api/manifest', '/icons/icon-192x192.svg', '/icons/icon-512x512.svg'];
 
 // 安装事件 - 缓存静态资源
 self.addEventListener('install', (event) => {
@@ -106,7 +110,7 @@ self.addEventListener('push', (event) => {
       body: data.body || '您有新消息',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
-      tag: 'friends-home-notification',
+      tag: '${APP_CONFIG.shortName.toLowerCase().replace(/\s+/g, '-')}-notification',
       renotify: true,
       requireInteraction: false,
       data: {
@@ -114,7 +118,7 @@ self.addEventListener('push', (event) => {
       },
     };
 
-    event.waitUntil(self.registration.showNotification(data.title || '朋友之家', options));
+    event.waitUntil(self.registration.showNotification(data.title || '${APP_CONFIG.name}', options));
   }
 });
 
@@ -141,3 +145,12 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+`;
+
+  return new Response(swContent, {
+    headers: {
+      'Content-Type': 'application/javascript',
+      'Service-Worker-Allowed': '/',
+    },
+  });
+}

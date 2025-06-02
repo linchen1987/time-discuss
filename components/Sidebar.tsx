@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Home, Settings } from "lucide-react"
+import { APP_CONFIG } from '@/config/app'
 
 export function Sidebar() {
     return (
@@ -10,7 +11,7 @@ export function Sidebar() {
             <div className="space-y-4">
                 {/* Logo */}
                 <div className="px-3 py-2">
-                    <h1 className="text-xl font-bold">朋友之家</h1>
+                    <h1 className="text-xl font-bold">{APP_CONFIG.name}</h1>
                 </div>
 
                 {/* Navigation */}

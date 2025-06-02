@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { User } from "lucide-react"
 import type { PostWithDetails } from "@/lib/types"
 import { debugAPI, debugAuth, logError } from '@/lib/debug'
+import { APP_CONFIG } from '@/config/app'
 
 interface UserProfile {
   id: string
@@ -183,11 +184,11 @@ export default function Home() {
         )}
       </div>
 
-      {/* 朋友之家介绍 */}
+      {/* 介绍 */}
       <div className="bg-muted rounded-xl p-4">
-        <h2 className="font-bold text-lg mb-2">朋友之家</h2>
+        <h2 className="font-bold text-lg mb-2">{APP_CONFIG.name}</h2>
         <p className="text-muted-foreground text-sm">
-          与朋友分享生活的美好时光
+          {APP_CONFIG.description}
         </p>
       </div>
     </div>

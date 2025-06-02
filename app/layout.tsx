@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
+import { APP_CONFIG } from '@/config/app';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,14 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "朋友之家",
-  description: "一个温馨的私密社交平台",
-  manifest: "/manifest.json",
+  title: APP_CONFIG.name,
+  description: APP_CONFIG.seoDescription,
+  manifest: "/api/manifest",
   themeColor: "#667eea",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "朋友之家",
+    title: APP_CONFIG.shortName,
   },
   formatDetection: {
     telephone: false,
@@ -46,11 +47,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/api/manifest" />
         <meta name="theme-color" content="#667eea" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="朋友之家" />
+        <meta name="apple-mobile-web-app-title" content={APP_CONFIG.shortName} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#667eea" />
         <meta name="msapplication-tap-highlight" content="no" />

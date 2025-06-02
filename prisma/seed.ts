@@ -61,7 +61,7 @@ async function main() {
                   format: 0,
                   mode: 'normal',
                   style: '',
-                  text: '欢迎来到朋友之家！这是我们的第一条帖子。',
+                  text: 'Hello World! 这是我们的第一条帖子。',
                   type: 'text',
                   version: 1,
                 },
@@ -80,7 +80,7 @@ async function main() {
           version: 1,
         },
       },
-      contentHtml: '<p>欢迎来到朋友之家！这是我们的第一条帖子。</p>',
+      contentHtml: '<p>Hello World! 这是我们的第一条帖子。</p>',
     },
   });
 

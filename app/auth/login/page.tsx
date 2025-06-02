@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle } from 'lucide-react'
+import { APP_CONFIG } from '@/config/app'
 
 export default function LoginPage() {
     const [formData, setFormData] = useState({
@@ -57,7 +58,7 @@ export default function LoginPage() {
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center">
-                        登录到朋友之家
+                        登录到{APP_CONFIG.name}
                     </CardTitle>
                     <CardDescription className="text-center">
                         还没有账号？{' '}
