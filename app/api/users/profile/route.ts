@@ -5,19 +5,14 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    console.log('API: 开始处理用户资料请求'); // 调试日志
-
     const session = await getServerSession(authOptions);
-    console.log('API: Session 信息:', session); // 调试日志
 
     if (!session?.user) {
-      console.log('API: 用户未登录'); // 调试日志
       return NextResponse.json({ error: '请先登录' }, { status: 401 });
     }
 
     // 使用 session 中的用户 ID
-    const userId = (session.user as any).id;
-    console.log('API: 用户ID:', userId); // 调试日志
+    const userId = session.user.id;
 
     if (!userId) {
       console.log('API: 无法获取用户ID'); // 调试日志

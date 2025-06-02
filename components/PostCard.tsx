@@ -23,21 +23,14 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         e.stopPropagation()
     }
 
-    // 类型安全的更新处理
-    const handlePostUpdated = (updated: PostWithDetails | any) => {
-        if (onPostUpdated && 'comments' in updated) {
-            onPostUpdated(updated as PostWithDetails)
-        }
-    }
-
     return (
         <div className="border-b border-border hover:bg-muted/50 transition-colors cursor-pointer">
             <div className="p-4">
-                <ContentItem
+                <ContentItem<PostWithDetails>
                     content={post}
                     type="post"
                     onDeleted={onPostDeleted}
-                    onUpdated={handlePostUpdated}
+                    onUpdated={onPostUpdated}
                     onClick={handlePostClick}
                     stopPropagation={stopPropagation}
                 />

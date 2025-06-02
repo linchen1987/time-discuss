@@ -30,7 +30,7 @@ export function CommentList({
 
     const handleCommentUpdated = (updatedComment: CommentWithDetails) => {
         setLocalComments(prev =>
-            prev.map(comment =>
+            prev.map((comment: CommentWithDetails) =>
                 comment.id === updatedComment.id ? updatedComment : comment
             )
         )

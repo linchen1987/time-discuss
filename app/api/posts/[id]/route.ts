@@ -94,9 +94,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 // 获取帖子详情（包含评论）
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 获取帖子详情，包含完整的评论数据
     const post = await prisma.post.findUnique({

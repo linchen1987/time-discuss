@@ -4,8 +4,6 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { userValidation } from './validations';
-import type { JWT } from 'next-auth/jwt';
-import type { Session, User } from 'next-auth';
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
@@ -63,7 +61,15 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user, trigger }: { token: JWT; user?: User; trigger?: string }) {
+    /**
+     * JWT 回调函数
+     * @param {Object} params - 参数对象
+     * @param {import('next-auth/jwt').JWT} params.token - JWT token 对象
+     * @param {Object} [params.user] - 用户对象（仅在登录时存在）
+     * @param {string} [params.trigger] - 触发类型（如 'update'）
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, user, trigger }: { token: any; user?: any; trigger?: string }) {
       if (user) {
         token.username = user.username;
         token.email = user.email;
@@ -94,7 +100,14 @@ export const authOptions = {
 
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    /**
+     * Session 回调函数
+     * @param {Object} params - 参数对象
+     * @param {import('next-auth').Session} params.session - Session 对象
+     * @param {import('next-auth/jwt').JWT} params.token - JWT token 对象
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async session({ session, token }: { session: any; token: any }) {
       if (token && session.user) {
         session.user.id = token.sub as string;
         session.user.username = token.username;

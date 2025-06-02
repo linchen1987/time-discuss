@@ -3,9 +3,15 @@ import fs from 'fs';
 import path from 'path';
 import { getAvatarUrl } from '@/lib/storage/avatarProvider';
 
-export async function GET(request: NextRequest, { params }: { params: { filename: string } }) {
+interface RouteParams {
+  params: Promise<{
+    filename: string;
+  }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const filename = params.filename;
+    const { filename } = await params;
 
     // 验证文件名格式，防止路径遍历攻击
     if (!filename || !/^avatar-[a-zA-Z0-9]+-\d+\.(jpg|jpeg|png|webp|gif)$/i.test(filename)) {

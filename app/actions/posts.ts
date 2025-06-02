@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { logError } from '@/lib/debug';
+import { prisma } from '@/lib/prisma';
 
 export async function createPost(lexicalState: Record<string, unknown> | null, contentHtml: string, imageUrls?: string[]) {
   try {
@@ -40,7 +41,7 @@ export async function createPost(lexicalState: Record<string, unknown> | null, c
     // 调用数据库操作
     const newPost = await import('@/lib/db-utils').then(({ postOperations }) =>
       postOperations.create({
-        authorId: session.user.id!,
+        authorId: session.user!.id!,
         lexicalState: validLexicalState,
         contentHtml,
         images: imageUrls?.map((url) => ({ url, altText: '' })),
@@ -83,27 +84,4 @@ export async function deletePost(postId: string) {
   });
 
   revalidatePath('/');
-}
-
-export async function likePost(postId: string) {
-  try {
-    const session = (await getServerSession(authOptions)) as { user?: { id?: string } } | null;
-
-    if (!session?.user?.id) {
-      throw new Error('请先登录');
-    }
-
-    // 使用动态导入来避免循环依赖
-    const { postOperations } = await import('@/lib/db-utils');
-    const result = await postOperations.toggleLike(postId, session.user.id!);
-
-    // 重新验证相关路径
-    revalidatePath('/');
-    revalidatePath(`/posts/${postId}`);
-
-    return result;
-  } catch (error) {
-    logError('likePost', error, 'Failed to like post');
-    throw error instanceof Error ? error : new Error('点赞失败，请重试');
-  }
 }

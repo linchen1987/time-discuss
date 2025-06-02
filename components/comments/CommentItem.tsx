@@ -47,7 +47,7 @@ export function CommentItem({
 
     return (
         <div className={`py-3 ${className}`}>
-            <ContentItem
+            <ContentItem<CommentWithDetails>
                 content={comment}
                 type="comment"
                 onDeleted={onCommentDeleted}

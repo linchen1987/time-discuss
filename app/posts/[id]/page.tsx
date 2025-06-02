@@ -66,12 +66,9 @@ export default function PostDetailsPage() {
         router.push('/')
     }
 
-    // 修复类型错误：明确处理 PostWithDetails 类型
-    const handlePostUpdated = (updated: PostWithDetails | CommentWithDetails) => {
-        // 确保更新的是帖子，而不是评论
-        if ('comments' in updated) {
-            setPost(updated as PostWithDetails)
-        }
+    // 处理帖子更新
+    const handlePostUpdated = (updated: PostWithDetails) => {
+        setPost(updated)
     }
 
     if (loading) {
@@ -144,7 +141,7 @@ export default function PostDetailsPage() {
         >
             {/* 帖子内容 */}
             <div className="border-b border-border p-4">
-                <ContentItem
+                <ContentItem<PostWithDetails>
                     content={post}
                     type="post"
                     onDeleted={handlePostDeleted}

@@ -16,11 +16,11 @@ import { useEdit } from "@/hooks/useEdit"
 import { useDelete } from "@/hooks/useDelete"
 import type { PostWithDetails, CommentWithDetails } from "@/lib/types"
 
-interface ContentItemProps {
-    content: PostWithDetails | CommentWithDetails
+interface ContentItemProps<T extends PostWithDetails | CommentWithDetails> {
+    content: T
     type: 'post' | 'comment'
     onDeleted?: (id: string) => void
-    onUpdated?: (updated: PostWithDetails | CommentWithDetails) => void
+    onUpdated?: (updated: T) => void
     onReplyClick?: () => void
     onClick?: () => void
     className?: string
@@ -29,7 +29,7 @@ interface ContentItemProps {
     children?: React.ReactNode // 用于插入额外内容，如回复表单
 }
 
-export function ContentItem({
+export function ContentItem<T extends PostWithDetails | CommentWithDetails>({
     content,
     type,
     onDeleted,
@@ -40,7 +40,7 @@ export function ContentItem({
     showReplyButton = false,
     stopPropagation,
     children
-}: ContentItemProps) {
+}: ContentItemProps<T>) {
     const { data: session } = useSession()
     const userId = session?.user ? (session.user as { id: string }).id : undefined
 
@@ -73,7 +73,7 @@ export function ContentItem({
         handleSaveEdit,
         handleEditorChange,
         hasChanges
-    } = useEdit<PostWithDetails | CommentWithDetails>({
+    } = useEdit<T>({
         entityId: content.id,
         entityType: type,
         initialLexicalState: content.lexicalState,
