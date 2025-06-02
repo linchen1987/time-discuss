@@ -1,10 +1,11 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
-import Link from "next/link"
 import { Layout } from "@/components/Layout"
-import { User, Palette, LogOut, ChevronRight } from "lucide-react"
+import { User, Palette, LogOut, Smartphone } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { PWAInstallButton } from "@/components/pwa-install-button"
+import { SettingItem } from "@/components/SettingItem"
 
 export default function SettingsPage() {
     const { data: session } = useSession()
@@ -27,34 +28,38 @@ export default function SettingsPage() {
             rightSidebarContent={rightSidebarContent}
         >
             <div className="p-4">
-                <div className="space-y-1">
+                <div className="space-y-0">
                     {/* 个人资料 */}
-                    <Link href="/profile">
-                        <div className="flex items-center p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-                            <User className="mr-3 h-5 w-5 text-muted-foreground" />
-                            <p className="font-medium flex-1">个人资料</p>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                    </Link>
+                    <SettingItem
+                        icon={<User />}
+                        title="个人资料"
+                        href="/profile"
+                        showChevron={true}
+                    />
 
                     {/* 主题模式 */}
-                    <div className="flex items-center p-3 rounded-lg">
-                        <Palette className="mr-3 h-5 w-5 text-muted-foreground" />
-                        <div className="flex-1">
-                            <p className="font-medium">主题模式</p>
-                        </div>
-                        <ThemeToggle className="-mr-3" />
-                    </div>
+                    <SettingItem
+                        icon={<Palette />}
+                        title="主题模式"
+                        rightContent={<ThemeToggle className="-mr-3" />}
+                    />
+
+                    {/* PWA 安装 */}
+                    <SettingItem
+                        icon={<Smartphone />}
+                        title="安装应用"
+                        rightContent={<PWAInstallButton />}
+                    />
 
                     {/* 退出登录 */}
                     {session && (
-                        <div
-                            className="flex items-center p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer text-destructive"
+                        <SettingItem
+                            icon={<LogOut />}
+                            title="退出登录"
                             onClick={handleSignOut}
-                        >
-                            <LogOut className="mr-3 h-5 w-5" />
-                            <p className="font-medium">退出登录</p>
-                        </div>
+                            variant="destructive"
+                            className="mt-3"
+                        />
                     )}
                 </div>
             </div>
