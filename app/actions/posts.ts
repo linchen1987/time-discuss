@@ -85,33 +85,6 @@ export async function deletePost(postId: string) {
   revalidatePath('/');
 }
 
-// 处理图片上传
-async function uploadImageToCloudinary(imageFile: File): Promise<string> {
-  // 创建 FormData
-  const formData = new FormData();
-  formData.append('file', imageFile);
-  formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET || '');
-
-  try {
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      logError('uploadImageToCloudinary', errorText, 'Cloudinary upload failed');
-      throw new Error('图片上传失败');
-    }
-
-    const result: { secure_url: string } = await response.json();
-    return result.secure_url;
-  } catch (error) {
-    logError('uploadImageToCloudinary', error, 'Image upload error');
-    throw error;
-  }
-}
-
 export async function likePost(postId: string) {
   try {
     const session = (await getServerSession(authOptions)) as { user?: { id?: string } } | null;

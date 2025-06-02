@@ -144,7 +144,7 @@ export default function RegisterPage() {
                                 name="username"
                                 type="text"
                                 required
-                                placeholder="用于登录，可输入手机、邮箱、或任意 ID"
+                                placeholder="请输入ID，用于登录"
                                 value={formData.username}
                                 onChange={handleChange}
                                 className={getFieldError('username') ? 'border-destructive focus-visible:ring-destructive/20' : ''}
