@@ -26,6 +26,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '最多上传9张图片' }, { status: 400 });
     }
 
+    // 检查总文件大小，为 Vercel 限制留出余量
+    const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+    const maxTotalSize = 40 * 1024 * 1024; // 40MB
+
+    if (totalSize > maxTotalSize) {
+      return NextResponse.json({ error: '图片总大小不能超过40MB，请减少图片数量或压缩后重试' }, { status: 413 });
+    }
+
     const userId = user.id;
 
     const uploadPromises = files.map(async (file, index) => {

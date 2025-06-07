@@ -2,9 +2,10 @@
 
 import React, { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Bold, ImagePlus, Smile, Loader2 } from 'lucide-react'
+import { Bold, ImagePlus, Smile, Loader2, Camera } from 'lucide-react'
 import EmojiPicker from '@/components/emoji/EmojiPicker'
 import type { Emoji } from '@/lib/emoji/data'
+import { useMobile } from '@/hooks'
 
 interface EditorToolbarProps {
     // 格式化相关
@@ -61,7 +62,9 @@ export function EditorToolbar({
     className = ""
 }: EditorToolbarProps) {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    const isMobile = useMobile()
+    const galleryInputRef = useRef<HTMLInputElement>(null)
+    const cameraInputRef = useRef<HTMLInputElement>(null)
     const emojiButtonRef = useRef<HTMLButtonElement>(null)
 
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,21 +100,51 @@ export function EditorToolbar({
                     {/* 图片上传按钮 */}
                     {showImageUpload && onImageUpload && (
                         <>
+                            {/* 相册选择 */}
                             <input
-                                ref={fileInputRef}
+                                ref={galleryInputRef}
                                 type="file"
                                 accept="image/*"
                                 multiple
                                 onChange={handleFileInputChange}
                                 className="hidden"
                             />
+                            {/* 拍照 */}
+                            <input
+                                ref={cameraInputRef}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                multiple
+                                onChange={handleFileInputChange}
+                                className="hidden"
+                            />
+                            {/* 拍照按钮只在移动设备显示 */}
+                            {isMobile && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => cameraInputRef.current?.click()}
+                                    disabled={isUploading || imageCount >= maxImages}
+                                    className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
+                                    title="拍照"
+                                >
+                                    {isUploading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Camera className="w-5 h-5 stroke-2" />
+                                    )}
+                                </Button>
+                            )}
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => galleryInputRef.current?.click()}
                                 disabled={isUploading || imageCount >= maxImages}
                                 className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
+                                title="选择图片"
                             >
                                 {isUploading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />

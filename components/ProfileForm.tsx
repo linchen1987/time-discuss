@@ -65,7 +65,18 @@ export default function ProfileForm({ user }: ProfileFormProps) {
             });
 
             if (!response.ok) {
-                throw new Error('上传失败');
+                let errorMessage = '上传失败';
+
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch {
+                    if (response.status === 413) {
+                        errorMessage = '图片文件过大，请压缩后重试';
+                    }
+                }
+
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();

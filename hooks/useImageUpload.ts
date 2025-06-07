@@ -43,8 +43,21 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '上传失败');
+        let errorMessage = '上传失败';
+
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // 处理非JSON响应（如413 Request Entity Too Large）
+          if (response.status === 413) {
+            errorMessage = `图片文件过大: ${errorMessage}`;
+          } else if (response.status >= 500) {
+            errorMessage = `服务器错误: ${errorMessage}`;
+          }
+        }
+
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
