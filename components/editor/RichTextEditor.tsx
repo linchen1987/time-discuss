@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import LexicalEditor from './LexicalEditor'
 import { EditorToolbar } from './EditorToolbar'
 import { ImagePreview } from '@/components/ui/ImagePreview'
-import { useImageUpload } from '@/hooks/useImageUpload'
+import { useImageUploadWithCompression } from '@/hooks/useImageUploadWithCompression'
+import { COMPRESSION_PRESETS, type CompressionConfig, type CompressionResult } from '@/lib/utils/imageCompression'
 import type { Emoji } from '@/lib/emoji/data'
 
 interface RichTextEditorProps {
@@ -23,6 +24,13 @@ interface RichTextEditorProps {
     maxImages?: number
     initialImages?: string[]
     onImagesChange?: (images: string[]) => void
+
+    // 压缩相关 - 新增
+    enableCompression?: boolean // 是否启用压缩，默认true
+    compressionMode?: 'smart' | 'preset' | 'custom' // 压缩模式
+    compressionPreset?: keyof typeof COMPRESSION_PRESETS // 预设配置
+    customCompressionConfig?: CompressionConfig // 自定义压缩配置
+    onCompressionComplete?: (results: CompressionResult[]) => void // 压缩完成回调
 
     // 工具栏相关
     showBold?: boolean
@@ -53,6 +61,13 @@ export function RichTextEditor({
     maxImages = 9,
     initialImages = [],
     onImagesChange,
+    // 压缩相关 - 默认开启
+    enableCompression = true,
+    compressionMode = 'smart',
+    compressionPreset = 'post',
+    customCompressionConfig,
+    onCompressionComplete,
+    // 工具栏相关
     showBold = true,
     showImageUpload = true,
     showEmoji = true,
@@ -71,13 +86,26 @@ export function RichTextEditor({
     const [isFocused, setIsFocused] = useState(false)
     const [contentHtml, setContentHtml] = useState('')
 
+    // 使用带压缩功能的图片上传hook
     const {
         uploadedImages,
         isUploading,
+        isCompressing,
         handleImageUpload,
         removeImage,
-        setUploadedImages
-    } = useImageUpload({ maxImages })
+        setUploadedImages,
+        resetCompressionStats
+    } = useImageUploadWithCompression({
+        maxImages,
+        enableCompression,
+        compressionMode,
+        preset: compressionPreset,
+        customConfig: customCompressionConfig,
+        showCompressionProgress: false, // 不显示进度组件
+        onCompressionComplete: (results) => {
+            onCompressionComplete?.(results)
+        }
+    })
 
     // 根据模式调整配置
     const modeConfig = {
@@ -121,6 +149,13 @@ export function RichTextEditor({
         onImagesChange?.(uploadedImages)
     }, [uploadedImages, onImagesChange])
 
+    // 重置时清除压缩统计
+    React.useEffect(() => {
+        if (uploadedImages.length === 0) {
+            resetCompressionStats()
+        }
+    }, [uploadedImages.length, resetCompressionStats])
+
     const handleEditorChange = (newEditorState: Record<string, unknown>, html: string) => {
         setContentHtml(html)
         onChange?.(newEditorState, html)
@@ -157,12 +192,10 @@ export function RichTextEditor({
     }
 
     const handleFocus = () => {
-        console.log('Editor focused - changing height to:', config.focusedMinHeight)
         setIsFocused(true)
     }
 
     const handleBlur = () => {
-        console.log('Editor blurred - changing height to:', config.minHeight)
         setIsFocused(false)
     }
 
@@ -204,13 +237,14 @@ export function RichTextEditor({
                     onBoldFormat={showBold && config.showFullToolbar ? handleBoldFormat : undefined}
                     onImageUpload={showImageUpload ? handleImageUpload : undefined}
                     isUploading={isUploading}
+                    isCompressing={isCompressing} // 传递压缩状态
                     imageCount={uploadedImages.length}
                     maxImages={config.maxImages}
                     onEmojiSelect={showEmoji && config.showFullToolbar ? handleEmojiSelect : undefined}
                     onSubmit={showSubmit ? onSubmit : undefined}
                     submitText={submitText}
                     isSubmitting={isSubmitting}
-                    disabled={disabled || !finalCanSubmit}
+                    disabled={disabled || !finalCanSubmit || isCompressing} // 压缩时禁用提交
                     showBold={showBold && config.showFullToolbar}
                     showImageUpload={showImageUpload}
                     showEmoji={showEmoji && config.showFullToolbar}

@@ -15,6 +15,7 @@ interface EditorToolbarProps {
     // 图片上传相关
     onImageUpload?: (files: FileList) => void
     isUploading?: boolean
+    isCompressing?: boolean
     imageCount?: number
     maxImages?: number
 
@@ -44,6 +45,7 @@ export function EditorToolbar({
     onBoldFormat,
     onImageUpload,
     isUploading = false,
+    isCompressing = false,
     imageCount = 0,
     maxImages = 9,
     onEmojiSelect,
@@ -79,6 +81,9 @@ export function EditorToolbar({
         onEmojiSelect?.(emoji)
         setShowEmojiPicker(false)
     }
+
+    const isProcessing = isUploading || isCompressing
+    const isImageDisabled = isProcessing || imageCount >= maxImages
 
     return (
         <>
@@ -126,11 +131,11 @@ export function EditorToolbar({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => cameraInputRef.current?.click()}
-                                    disabled={isUploading || imageCount >= maxImages}
+                                    disabled={isImageDisabled}
                                     className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
-                                    title="拍照"
+                                    title={isCompressing ? "正在压缩图片..." : "拍照"}
                                 >
-                                    {isUploading ? (
+                                    {isProcessing ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                     ) : (
                                         <Camera className="w-5 h-5 stroke-2" />
@@ -142,11 +147,11 @@ export function EditorToolbar({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => galleryInputRef.current?.click()}
-                                disabled={isUploading || imageCount >= maxImages}
+                                disabled={isImageDisabled}
                                 className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
-                                title="选择图片"
+                                title={isCompressing ? "正在压缩图片..." : "选择图片"}
                             >
-                                {isUploading ? (
+                                {isProcessing ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
                                     <ImagePlus className="w-5 h-5 stroke-2" />
@@ -188,7 +193,7 @@ export function EditorToolbar({
                                 variant="ghost"
                                 size="sm"
                                 onClick={onCancel}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isCompressing}
                             >
                                 {cancelText}
                             </Button>
@@ -197,7 +202,7 @@ export function EditorToolbar({
                             <Button
                                 type="button"
                                 onClick={onSubmit}
-                                disabled={disabled || isSubmitting}
+                                disabled={disabled || isSubmitting || isCompressing}
                                 className="rounded-full"
                             >
                                 {isSubmitting ? `${submitText}中...` : submitText}
