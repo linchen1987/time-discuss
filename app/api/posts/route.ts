@@ -1,10 +1,28 @@
 import { NextResponse } from 'next/server';
 import { postOperations } from '@/lib/db-utils';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const posts = await postOperations.getPostsWithDetails();
-    return NextResponse.json(posts);
+    const { searchParams } = new URL(request.url);
+    const cursor = searchParams.get('cursor') || undefined;
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 20); // 最大20条
+
+    const posts = await postOperations.getPostsWithDetails({
+      cursor,
+      limit,
+    });
+
+    // 判断是否还有更多数据
+    const hasMore = posts.length === limit;
+    const nextCursor = hasMore ? posts[posts.length - 1]?.id : null;
+
+    return NextResponse.json({
+      data: posts,
+      pagination: {
+        hasMore,
+        nextCursor,
+      },
+    });
   } catch (error) {
     // 返回具体的错误信息而不是通用消息
     if (error instanceof Error) {
